@@ -18,7 +18,10 @@ std::getline(inputFile, line)
 it reads each line from the file and stores it in the line string, it continues until the end of the file is reached
 
 3. Modelize the board and pieces
-- from a1 to h8
+- from a1 to h8 : ideas of functions
+- [ ] is_valid(pos) : in the board ?
+- [ ] check_pos(pos) : if a pawn is at pos, return the type of the pawn
+
 - pawn, knight, rook, bishop, queen, king
 
 4. Modelize basic moves
