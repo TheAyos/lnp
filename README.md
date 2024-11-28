@@ -2,7 +2,7 @@
 
 Project made by Youssef Seghrouchni, Siyuan Lu, Ayoub Agouzoul and Rachid Tazi.
 
-## Initial Step : Cloning the Repository
+## Initial Setup
 The first step is to create a local copy of the repository on your computer.
 
 1. Open a terminal and navigate to the folder where you want to store the project.
@@ -18,23 +18,20 @@ The first step is to create a local copy of the repository on your computer.
 5. Stage your changed files : ```git add .```
 6. Commit your updates : ```git commit -am "[filename] fix X"```
 7. ```git push -u origin YOURNAME```
+8. Done ! Your changes are synced with the server.
 
+## Building the code
+1. See teacher's example on github to modify CMakeLists.txt
+2. Use ```build.sh``` (unix only)
+3. The built binaries should be in ```build/``` (e.g. run with ```./build/mainProgram```)
 
 
 # Next steps : 
-1. MAKEFILE to do
-2. USE the library 'fstream' to parse the input file and generate an output file
-
-- How to open a file for reading : 
-std::ifstream inputFile("input.txt");
-
-- How to open a file for writing : 
-std::ofstream outputFile("output.txt");
-
-- Read a line from the file :
-std::getline(inputFile, line)
---> while (std::getline(inputFile, line))
-it reads each line from the file and stores it in the line string, it continues until the end of the file is reached
+(Template : - [ ] TASK --> assignee)
+- [x] MAKEFILE to do
+- [ ] USE the library 'fstream' to parse the input file and generate an output file --> ayoub
+- [ ] start implementing the pieces and rules
+- [ ] start searching algorithms for move predictions
 
 3. Modelize the board and pieces
 - from a1 to h8 : ideas of functions
