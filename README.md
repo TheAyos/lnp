@@ -18,7 +18,11 @@ std::getline(inputFile, line)
 it reads each line from the file and stores it in the line string, it continues until the end of the file is reached
 
 3. Modelize the board and pieces
+- from a1 to h8
+- pawn, knight, rook, bishop, queen, king
 
 4. Modelize basic moves
+each move is described as follow : <srcLetter><srcNumber><destLetter><destNumber>{<promotion code>}
 
 5. CHECK detection
+- we can do it by propagation : we start at the king position and increase the size of the square each time to see if the line or the diagonal is protected or not reached by the ennemy. 
