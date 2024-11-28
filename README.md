@@ -26,3 +26,4 @@ each move is described as follow : (srcLetter)(srcNumber)(destLetter)(destNumber
 
 5. CHECK detection
 - we can do it by propagation : we start at the king position and increase the size of the square each time to see if the line or the diagonal is protected or not reached by the ennemy. 
+- and check all knight positions (max 8)
