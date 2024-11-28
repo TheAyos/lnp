@@ -2,6 +2,25 @@
 
 Project made by Youssef Seghrouchni, Siyuan Lu, Ayoub Agouzoul and Rachid Tazi.
 
+## Initial Step : Cloning the Repository
+The first step is to create a local copy of the repository on your computer.
+
+1. Open a terminal and navigate to the folder where you want to store the project.
+2. Run the following command:
+   ```bash
+   git clone git@gitlab.binets.fr:rachid.tazi/logic-and-proofs.git
+   ```
+## Coding Workflow : **Each time** you want to code !
+1. ```git fetch```
+2. Ensure you are on your own development branch ```git checkout YOURNAME``` (you can see the branch names with ```git branch```)
+3. ```git pull --rebase```
+4. Code...
+5. Stage your changed files : ```git add .```
+6. Commit your updates : ```git commit -am "[filename] fix X"```
+7. ```git push -u origin YOURNAME```
+
+
+
 # Next steps : 
 1. MAKEFILE to do
 2. USE the library 'fstream' to parse the input file and generate an output file
