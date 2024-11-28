@@ -25,6 +25,9 @@ The first step is to create a local copy of the repository on your computer.
 2. Use ```build.sh``` (unix only)
 3. The built binaries should be in ```build/``` (e.g. run with ```./build/mainProgram```)
 
+## NB
+- output file should be one line only (next move)
+- for castling, rook move comes always first
 
 # Next steps : 
 (Template : - [ ] TASK --> assignee)
