@@ -1,3 +1,4 @@
+#include "Game.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -58,5 +59,18 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  Game g;
+
+  g.display();
+  Pieces *w_king = g.w_Pieces[0];
+  for(int row = 1; row < 7; row++) {
+    g.move(w_king, row, 5);
+    g.display();
+  }
+  /*
+  std::vector<Square> m = g.get_moves(w_king);
+  for (auto & element : m)
+    std::cout << element.row << " " << element.col << std::endl;
+  */
   return 0;
 }
