@@ -42,6 +42,8 @@ int main(int argc, char **argv) {
   }
   // <yourAIname> -H <input history file> -m <output move file>
 
+  // FIXME: -m -H zdzdz considers -H as arg to -m !!!
+
   if(argMap.count("-H")) {
     std::cout << "Input history filename: " << argMap["-H"] << std::endl;
   } else {
