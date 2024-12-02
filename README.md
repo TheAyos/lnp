@@ -13,7 +13,7 @@ The first step is to create a local copy of the repository on your computer.
 ## Coding Workflow : **Each time** you want to code !
 1. ```git fetch```
 2. Ensure you are on your own development branch ```git checkout YOURNAME``` (you can see the branch names with ```git branch```)
-3. When starting to work on a new feature, ensure your branch has the latest updates from the main branch : ```git rebase main && git push```
+3. When starting to work on a new feature, ensure your branch has the latest updates from the development branch : ```git rebase dev && git push```
    (Otherwise, just to make sure your local and remote branch are synced : ```git pull --rebase```)
 4. Code.....
 5. Stage your changed files : ```git add .```
@@ -24,7 +24,14 @@ The first step is to create a local copy of the repository on your computer.
 ## Building the code
 1. See teacher's example on github to modify CMakeLists.txt
 2. Use ```build.sh``` (unix only)
-3. The built binaries should be in ```build/``` (e.g. run with ```./build/mainProgram```)
+3. The built binaries should be in ```build/``` (e.g. run with ```./build/logic-and-proofs```)
+
+## Merging your changes to the development branch
+1. Completing the "Coding Workflow" steps above
+2. Go to gitlab, on the project's page and 'create merge request'
+3. Assign the merge request to someone other than you and add a reviewer
+4. UNCHECK 'delete source branch when merge request is accepted'
+5. Create merge request
 
 ## NB
 - output file should be one line only (next move)
