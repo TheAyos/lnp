@@ -11,11 +11,10 @@ The first step is to create a local copy of the repository on your computer.
    git clone git@gitlab.binets.fr:rachid.tazi/logic-and-proofs.git
    ```
 ## Coding Workflow : **Each time** you want to code !
-1. ```git fetch```
+1. ```git fetch && git checkout dev```
 2. Ensure you are on your own development branch ```git checkout YOURNAME``` (you can see the branch names with ```git branch```)
-3. When starting to work on a new feature, ensure your branch has the latest updates from the development branch : ```git rebase dev && git push```
-   (Otherwise, just to make sure your local and remote branch are synced : ```git pull --rebase```)
-4. Code.....
+3. When starting to work on a new feature, ensure your branch has the latest updates from the development branch : ```git rebase dev && git push && git pull --rebase```
+4. Code...
 5. Stage your changed files : ```git add .```
 6. Commit your updates : ```git commit -am "[filename] fix X"```
 7. ```git push -u origin YOURNAME```
