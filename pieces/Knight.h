@@ -1,7 +1,9 @@
 #include "Piece.h"
+#include "../Square.h"
+#pragma once
 
 struct Knight : Piece {
 	Knight(int color, Pos pos);
 
-	bool potential_move(Pos to);
+	std::vector<std::string> legal_moves(Piece* board[8][8]);
 };

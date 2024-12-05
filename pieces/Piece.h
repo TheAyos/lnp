@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <string>
 
 #ifndef PIECE_H
 #define PIECE_H
@@ -6,6 +8,9 @@
 struct Pos {
 	int x;
 	int y;
+
+	std::string to_str();
+	bool in_bound();
 };
 
 struct Piece {
@@ -23,7 +28,7 @@ struct Piece {
 	Pos get_pos();
 	int get_color();
 	int get_type();
-	virtual bool potential_move(Pos to) = 0;
+	virtual std::vector<std::string> legal_moves(Piece* board[8][8]) = 0;
 };
 
 #endif

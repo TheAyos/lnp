@@ -7,11 +7,11 @@
 #include "pieces/Queen.h"
 
 struct Board {
-  Square board[8][8];
+  Piece* board[8][8];
 
-  // bool in_bounds(Pos p);
   Board();
-
+  
+  //bool blocked_move(Pos from, Pos to);
   void display();
   void init();
 };

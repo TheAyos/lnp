@@ -6,8 +6,8 @@ struct Pawn : Piece {
 
 	Pawn(int color, Pos pos);
 
-    bool has_moved;
+    bool has_moved();
     //bool en_passant();
     //bool promotion();
-	bool potential_move(Pos to);
+	std::vector<std::string> legal_moves(Piece* board[8][8]);	
 };

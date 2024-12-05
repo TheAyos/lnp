@@ -7,9 +7,6 @@ Queen::Queen(int color, Pos pos) {
     this->pos = pos;
 }
 
-bool Queen::potential_move(Pos to) {
-    int dx = std::abs(to.x - pos.x);
-    int dy = std::abs(to.y - pos.y);
-
-    return (to.x == pos.x || to.y == pos.y || dx == dy);
+std::vector<std::string> Queen::legal_moves(Piece* board[8][8]) {
+	exit(0);
 }

@@ -7,6 +7,6 @@ Rook::Rook(int color, Pos pos) {
     this->has_moved = false;
 }
 
-bool Rook::potential_move(Pos to) {
-    return (to.x == pos.x || to.y == pos.y);
+std::vector<std::string> Rook::legal_moves(Piece* board[8][8]) {
+	exit(0);
 }

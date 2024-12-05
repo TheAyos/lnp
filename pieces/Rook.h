@@ -7,7 +7,7 @@ struct Rook : Piece {
     Rook(int color, Pos pos);
     bool has_moved;
 
-    bool potential_move(Pos to);
+    std::vector<std::string> legal_moves(Piece* board[8][8]); 
 };
 
 #endif

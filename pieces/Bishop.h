@@ -6,7 +6,7 @@
 struct Bishop : Piece {
     Bishop(int color, Pos pos);
 
-    bool potential_move(Pos to);
+    std::vector<std::string> legal_moves(Piece* board[8][8]);
 };
 
 #endif

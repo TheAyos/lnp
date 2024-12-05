@@ -8,8 +8,6 @@ King::King(int color, Pos pos) {
   is_castled = false;
 }
 
-bool King::potential_move(Pos to) {
-  if(abs(to.x - pos.x) <= 1 && abs(to.y - pos.y) <= 1)
-    return true;
-  return false;
+std::vector<std::string> King::legal_moves(Piece* board[8][8]) {
+	exit(0);
 }

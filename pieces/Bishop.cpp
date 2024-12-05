@@ -7,8 +7,6 @@ Bishop::Bishop(int color, Pos pos) {
 	this->pos = pos;
 }
 
-bool Bishop::potential_move(Pos to) {
-	if ( abs(to.x - pos.x) == abs(to.y - pos.y) )
-		return true;
-	return false;
+std::vector<std::string> Bishop::legal_moves(Piece* board[8][8]) {
+	exit(0);
 }

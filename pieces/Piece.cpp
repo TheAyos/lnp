@@ -1,5 +1,16 @@
 #include "Piece.h"
 
+std::string Pos::to_str() {
+	std::string out = "";
+	out += ('a'+y);
+	out += ('1'+x);
+	return out;
+}
+
+bool Pos::in_bound() {
+	return (x < 8 && x >= 0 && y < 8 && y >= 0);
+}
+
 void Piece::set_pos(Pos pos) {
   this->pos = pos;
 }
