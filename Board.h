@@ -1,12 +1,12 @@
 #include "Square.h"
-#include "King.h"
+#include "pieces/King.h"
 
 struct Board {
-	Square board[8][8];
-	
-	// bool in_bounds(Pos p);
-	Board();
+  Square board[8][8];
 
-	void display();
-	void init();
+  // bool in_bounds(Pos p);
+  Board();
+
+  void display();
+  void init();
 };

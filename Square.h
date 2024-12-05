@@ -1,16 +1,17 @@
 #ifndef SQUARE_H
 #define SQUARE_H
 
-#include "Piece.h"
+#include "pieces/Piece.h"
 
 struct Square {
-	Piece* piece;
+  Piece *piece;
 
-	Square() : piece { nullptr } {}
-	
-	Piece* get_piece();
-	void set_piece(Piece* piece);
-	void clean();
-};	
+  Square() : piece{nullptr} {
+  }
+
+  Piece *get_piece();
+  void set_piece(Piece *piece);
+  void clean();
+};
 
 #endif
