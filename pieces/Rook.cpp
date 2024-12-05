@@ -10,7 +10,3 @@ Rook::Rook(int color, Pos pos) {
 bool Rook::potential_move(Pos to) {
     return (to.x == pos.x || to.y == pos.y);
 }
-
-bool Rook::can_castle() {
-    return !has_moved;
-}
