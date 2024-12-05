@@ -13,3 +13,8 @@ bool King::potential_move(Pos to) {
 		return true;
 	return false;
 }
+
+
+bool King::can_castle() {
+    return !is_castled;
+}
