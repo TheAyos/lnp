@@ -49,6 +49,30 @@ int Parser::parseHistory() {
   std::string line;
   while(std::getline(inputStream, line)) {
     std::cout << line << std::endl;
+
+    int fromRow, fromCol, toRow, toCol;
+    // some sanity checks
+    if(line.length() < 5 || line.length() > 6 || line[0] < 'a' || line[0] > 'h'
+       || line[1] < '0' || line[1] > '9' || line[2] < 'a' || line[2] > 'h'
+       || line[3] < '0' || line[3] > '9')
+      return -1;
+
+    fromCol = (line[0] - 'a'); // ascii magic
+    fromRow = std::stoi(line.substr(1, 1));
+    toCol = (line[2] - 'a');
+    toRow = std::stoi(line.substr(3, 1));
+
+    Util::printDebug(std::to_string(fromRow) + " " + std::to_string(fromCol)
+                     + "->" + std::to_string(toRow) + " "
+                     + std::to_string(toCol));
+
+    if(line.length() == 6) {
+      std::string newPiece(1, line[4]);
+      Util::printDebug("With promotion from ?? to " + newPiece);
+    }
+
+    // TODO: castling detection, when Board representation is done (castling
+    // rights & states)
   }
 
   inputStream.close();
