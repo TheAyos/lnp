@@ -14,4 +14,4 @@ int Piece::get_color() {
 
 int Piece::get_type() {
 	return type;
-}
+
