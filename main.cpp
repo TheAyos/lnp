@@ -1,9 +1,8 @@
 #include "Board.h"
+#include "Parser.h"
 #include "Square.h"
 #include "pieces/Piece.h"
 #include <iostream>
-#include <string>
-#include <unordered_map>
 
 int main(int argc, char **argv) {
   Board b;
@@ -13,45 +12,10 @@ int main(int argc, char **argv) {
   Pos p{0, 6};
   std::cout << wk->potential_move(p) << std::endl;
 
-  for(int i = 0; i < argc; i++) {
-    std::cout << "Displaying argument #" << std::to_string(i) << ": `"
-              << std::string(argv[i]) << "'" << std::endl;
-  }
+  // TODO: all use same clang-format style
 
-  std::unordered_map<std::string, std::string> argMap;
-
-  for(int i = 1; i < argc; i++) {
-    std::string arg = argv[i];
-    if(arg == "-H" || arg == "-m") {
-      if(i + 1 < argc && argv[i + 1][0] != '-') {
-        argMap[arg] = argv[++i]; // store next argument
-      } else {
-        std::cerr << "Error: Missing value for option `" << arg << "`."
-                  << std::endl;
-        return 1;
-      }
-    } else {
-      std::cerr << "Error: Unrecognized argument `" << arg << "`." << std::endl;
-      return 1;
-    }
-  }
-  // <yourAIname> -H <input history file> -m <output move file>
-
-  // FIXME: -m -H zdzdz considers -H as arg to -m !!!
-
-  if(argMap.count("-H")) {
-    std::cout << "Input history filename: " << argMap["-H"] << std::endl;
-  } else {
-    std::cerr << "Error: -H option is required." << std::endl;
-    return 1;
-  }
-
-  if(argMap.count("-m")) {
-    std::cout << "Output move file: " << argMap["-m"] << std::endl;
-  } else {
-    std::cerr << "Error: -m option is required." << std::endl;
-    return 1;
-  }
+  Parser parser{argc, argv};
+  parser.parseArgs();
 
   return 0;
 }
