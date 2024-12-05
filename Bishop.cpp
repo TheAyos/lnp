@@ -2,14 +2,13 @@
 #include <cmath>
 
 Bishop::Bishop(int color, Pos pos) {
-	this->type = 5;
+	this->type = 2;
 	this->color = color;
 	this->pos = pos;
 }
 
 bool Bishop::potential_move(Pos to) {
-    for (int i = 1; i < )
-	if ( abs(to.x - pos.x) <= 1 && abs(to.y - pos.y) <= 1 )
+	if ( abs(to.x - pos.x) == abs(to.y - pos.y) )
 		return true;
 	return false;
 }
