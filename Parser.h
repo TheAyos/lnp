@@ -15,4 +15,5 @@ struct Parser {
   Parser(int argc, char **argv);
   int parseArgs();
   int parseHistory();
+  int writeNextMove(const std::string &moveString);
 };

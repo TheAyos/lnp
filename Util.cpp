@@ -4,7 +4,7 @@
 namespace Util {
   bool debugMode = true;
 
-  void printError(const std::string &message) {
+  void exitError(const std::string &message) {
     std::cerr << "Error: " << message << std::endl;
     exit(1);
   }

@@ -16,20 +16,8 @@ int main(int argc, char **argv) {
 
   Parser parser{argc, argv};
   parser.parseArgs();
+  parser.parseHistory();
+  parser.writeNextMove("g1h3");
 
   return 0;
 }
-
-/*
-How to open a file for reading :
-std::ifstream inputFile("input.txt");
-
-How to open a file for writing :
-std::ofstream outputFile("output.txt");
-
-Read a line from the file :
-std::getline(inputFile, line)
---> while (std::getline(inputFile, line))
-it reads each line from the file and stores it in the line string, it continues
-until the end of the file is reached
-*/
