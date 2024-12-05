@@ -1,8 +1,9 @@
-#include "Square.h"
-#include "Pieces.h"
+#include "Piece.h"
 
-struct King : Pieces {
-	King(int color);
-	// bool is_Check();
-	std::vector<Square> potential_moves(Square Board[8][8]);
+struct King : Piece {
+	bool is_castled;
+
+	King(int color, Pos pos);
+
+	bool potential_move(Pos to);
 };

@@ -1,4 +1,7 @@
 #include "Square.h"
 
-Square::Square()
-	: piece_id {-1}, color_id {-1} {}
+Piece* Square::get_piece() { return piece; }
+
+void Square::set_piece(Piece* piece) { this->piece = piece; }
+
+void Square::clean() {piece = nullptr;}
