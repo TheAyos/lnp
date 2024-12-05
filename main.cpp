@@ -1,5 +1,4 @@
 #include "Board.h"
-#include "Game.h"
 #include "Square.h"
 #include "pieces/Piece.h"
 #include <iostream>
@@ -24,7 +23,7 @@ int main(int argc, char **argv) {
   for(int i = 1; i < argc; i++) {
     std::string arg = argv[i];
     if(arg == "-H" || arg == "-m") {
-      if(i + 1 < argc) {
+      if(i + 1 < argc && argv[i + 1][0] != '-') {
         argMap[arg] = argv[++i]; // store next argument
       } else {
         std::cerr << "Error: Missing value for option `" << arg << "`."
