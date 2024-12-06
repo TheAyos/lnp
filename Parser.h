@@ -1,4 +1,5 @@
 #pragma once
+#include "Board.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -14,6 +15,6 @@ struct Parser {
 
   Parser(int argc, char **argv);
   int parseArgs();
-  int parseHistory();
+  int parseHistory(Board* board);
   int writeNextMove(const std::string &moveString);
 };

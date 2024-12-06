@@ -1,5 +1,4 @@
 #include "Piece.h"
-#include "../Square.h"
 #pragma once
 
 struct Knight : Piece {

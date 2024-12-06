@@ -4,7 +4,7 @@ project(logic-and-proofs
   VERSION 0.1
   LANGUAGES CXX)
 
-add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp Square.h Square.cpp
+add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
             pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
             pieces/Pawn.h pieces/Pawn.cpp
             pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp

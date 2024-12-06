@@ -1,4 +1,4 @@
-#include "Square.h"
+#pragma once
 #include "pieces/King.h"
 #include "pieces/Pawn.h"
 #include "pieces/Knight.h"
