@@ -8,10 +8,15 @@
 
 struct Board {
   Piece* board[8][8];
+  Pos str_from(std::string);
+  Pos str_to(std::string);
 
   Board();
-  
-  //bool blocked_move(Pos from, Pos to);
+ 
+  std::vector<std::string> all_legal_moves(int color);
+  Piece* move(Pos from, Pos to);
+  void undo_move(Pos from, Pos to, Piece* captured); 
+  bool in_check(int color);
   void display();
   void init();
 };

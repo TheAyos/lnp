@@ -8,7 +8,7 @@ add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knig
             pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
             pieces/Pawn.h pieces/Pawn.cpp
             pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
-            pieces/Queen.h pieces/Queen.cpp)
+            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
 add_executable(logic-and-proofs main.cpp)
 include_directories(.)
 target_link_libraries(logic-and-proofs PRIVATE game)

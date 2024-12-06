@@ -3,52 +3,60 @@
 #include <iostream>
 
 Board::Board() { init(); }
-/*
-// checks if a piece is blocking the move 
-// DOES NOT CHECK THE DESTINATION!!, that is checked in the individual pieces
-bool Board::blocked_move(Pos from, Pos to) { // check if a piece is blocking the move 
-	if (abs(from.x-to.x) <= 1 && abs(from.y-to.y) <= 1) return false; // one square move
-	
-	if (board[from.x][from.y].get_piece()->get_type() == 1) return false; // knights can jump
-	
-	if (from.x == to.x) { // horizontal move
-		if (from.y < to.y)
-			for (int j = from.y+1; j < to.y; j++) {
-				Piece* p = board[to.x][j].get_piece();
-				if (p != nullptr) return true;
-			}
-		else
-			for (int j = to.y+1; j < from.y; j++){
-				Piece* p = board[to.x][j].get_piece();
-				if (p != nullptr) return true;
-			}
-	}
-	else if (from.y == to.y) { // horizontal move
-		if (from.x < to.x)
-			for (int i = from.x+1; i < to.x; i++) {
-				Piece* p = board[i][to.y].get_piece();
-				if (p != nullptr) return true;
-			}
-		else
-			for (int i = to.x+1; i < from.x; i++){
-				Piece* p = board[i][to.y].get_piece();
-				if (p != nullptr) return true;
-			}
-	}
-	else { // diagonal move
-	        int i, j;
-		if (from.y < to.y && from.x < to.x) { // forward right
-			i = from.x+1; j = from.y+1;
-			while (i < to.x) {
-				Piece* p = board[i][j].get_piece();
-				if (p != nullptr) return true;
-				i++; j++;
-			}
-		}
-	}
-		
+
+Pos Board::str_from(std::string str) {return Pos{str[1]-'1', str[0]-'a'};}
+Pos Board::str_to(std::string str) {return Pos{str[3]-'1', str[2]-'a'};}
+
+
+Piece* Board::move(Pos from, Pos to) {
+	Piece* captured = board[to.x][to.y];
+	board[to.x][to.y] = board[from.x][from.y];
+	board[to.x][to.y]->pos.x = to.x;
+	board[to.x][to.y]->pos.y = to.y;
+	board[from.x][from.y] = nullptr;
+	return captured;
 }
-*/
+
+void Board::undo_move(Pos from, Pos to, Piece* captured) {
+	board[from.x][from.y] = board[to.x][to.y];
+	board[from.x][from.y]->pos.x = from.x;
+	board[from.x][from.y]->pos.y = from.y;
+	board[to.x][to.y] = captured;
+}
+
+bool Board::in_check(int color) {
+	Pos k_pos {0,0};
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+			if (board[i][j] != nullptr && board[i][j]->type == 5 && board[i][j]->color == color)
+			       	k_pos = board[i][j]->pos;
+
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+			if (board[i][j] != nullptr && board[i][j]->color != color)
+				for (auto & elem : board[i][j]->legal_moves(board))
+					if ( elem[2] == k_pos.to_str()[0] && elem[3] == k_pos.to_str()[1]) return true;
+	return false;
+}
+
+std::vector<std::string> Board::all_legal_moves(int color) {
+	std::vector<std::string> cache;
+	for (int i = 0; i < 8; i++)
+		for (int j = 0; j < 8; j++)
+			if (board[i][j] != nullptr && board[i][j]->color == color) {
+				// std::cout << i << " " << j << std::endl;
+				std::vector<std::string> store = board[i][j]->legal_moves(board);
+				for ( auto & str : store ) {
+					// std::cout << str << std::endl;
+					Pos from = str_from(str);
+					Pos to = str_to(str);
+					Piece* c = move(from, to);
+					if (!in_check(color)) cache.push_back(str);
+					undo_move(from, to, c);
+				}
+			}
+	return cache;
+}
 
 /*
  * Below are done
@@ -113,12 +121,15 @@ void Board::init() {
 }
 
 void Board::display() {
-	std::string line = "";
+	std::string line = "  ";
 	for (int i = 0; i < 8; i++) line += " ----";
 	line += "\n";
 
 	std::string out = line;
 	for (int i = 7; i >= 0; i--){
+		char row = ('1'+i);
+		std::string row1{row};
+		out += row1+" ";
 		for (int j = 0; j < 8; j++) {
 			out += "| ";
 			Piece* p = board[i][j];
@@ -145,5 +156,6 @@ void Board::display() {
 		}
 		out += "|\n"+line;
 	}
+	out += "    a    b    c    d    e    f    g    h";
 	std::cout << out << std::endl;
 }
