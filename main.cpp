@@ -8,7 +8,8 @@ int main(int argc, char **argv) {
   Board b;
   b.display();
 
-  Piece* wn = b.board[1][4];
+  b.board[4][5] = new King{1, Pos{4,5}};
+  Piece* wn = b.board[4][5];
   // b.board[2][3] = new Pawn{1, Pos{2,3}};
   // b.display();
   
