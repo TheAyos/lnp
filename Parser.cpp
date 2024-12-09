@@ -40,8 +40,8 @@ int Parser::parseArgs() {
   return 0;
 }
 
-int Parser::parseHistory(Board* board) {
-   int turn = 1;
+int Parser::parseHistory(Board *board) {
+  int turn = 1;
   std::ifstream inputStream(historyFile);
 
   if(!inputStream || !inputStream.is_open())
@@ -52,36 +52,40 @@ int Parser::parseHistory(Board* board) {
 
     int fromRow, fromCol, toRow, toCol;
     // some sanity checks
-    if(line.length() < 5 || line.length() > 6 || line[0] < 'a' || line[0] > 'h'
+    std::cout << line.length() << std::endl;
+    if(line.length() < 4 || line.length() > 5 || line[0] < 'a' || line[0] > 'h'
        || line[1] < '0' || line[1] > '9' || line[2] < 'a' || line[2] > 'h'
        || line[3] < '0' || line[3] > '9')
-      return -1;
+      Util::exitError("sanity checks for line " + line + " failed");
 
     fromCol = (line[0] - 'a'); // ascii magic
-    fromRow = std::stoi(line.substr(1, 1))-1;
+    fromRow = std::stoi(line.substr(1, 1)) - 1;
     toCol = (line[2] - 'a');
-    toRow = std::stoi(line.substr(3, 1))-1;
-    
-    // std::cout << fromRow << " " << fromCol << std::endl;
-	
+    toRow = std::stoi(line.substr(3, 1)) - 1;
+
+    std::cout << fromRow << " " << fromCol << std::endl;
+
     // temporary: check for castle:
-    if (board->board[fromRow][fromCol]->type == 5) {
-	if (fromRow == 0) {
-	    if (toCol == 6) board->move(Pos{0,7},Pos{0,5});
-	    if (toCol == 2) board->move(Pos{0,0},Pos{0,3});
-	}
-	else {
-	    if (toCol == 6) board->move(Pos{7,7},Pos{7,5});
-	    if (toCol == 2) board->move(Pos{7,0},Pos{7,3});
-	}
+    if(board->board[fromRow][fromCol]->type == 5) {
+      if(fromRow == 0) {
+        if(toCol == 6)
+          board->move(Pos{0, 7}, Pos{0, 5});
+        if(toCol == 2)
+          board->move(Pos{0, 0}, Pos{0, 3});
+      } else {
+        if(toCol == 6)
+          board->move(Pos{7, 7}, Pos{7, 5});
+        if(toCol == 2)
+          board->move(Pos{7, 0}, Pos{7, 3});
+      }
     }
     // temporary: check en passant:
-    if (board->board[fromRow][fromCol]->type == 0)
-	if (fromCol != toCol && board->board[toRow][toCol] == nullptr)
-		board->board[fromRow][toCol] = nullptr;		    
+    if(board->board[fromRow][fromCol]->type == 0)
+      if(fromCol != toCol && board->board[toRow][toCol] == nullptr)
+        board->board[fromRow][toCol] = nullptr;
 
-    board->move(Pos{fromRow,fromCol}, Pos{toRow,toCol});
-    
+    board->move(Pos{fromRow, fromCol}, Pos{toRow, toCol});
+
     Util::printDebug(std::to_string(fromRow) + " " + std::to_string(fromCol)
                      + "->" + std::to_string(toRow) + " "
                      + std::to_string(toCol));
@@ -90,14 +94,19 @@ int Parser::parseHistory(Board* board) {
       char newPiece = line[4];
       // Util::printDebug("With promotion from ?? to " + newPiece);
       int color = board->board[toRow][toCol]->color;
-      Pos pos = Pos{toRow,toCol};
-      if (newPiece == 'q') board->board[toRow][toCol] = new Queen{color, pos};
-      else if (newPiece == 'r') board->board[toRow][toCol] = new Rook{color, pos};
-      else if (newPiece == 'b') board->board[toRow][toCol] = new Bishop{color, pos};
-      else { board->board[toRow][toCol] = new Knight{color, pos};}
-    } 
+      Pos pos = Pos{toRow, toCol};
+      if(newPiece == 'q')
+        board->board[toRow][toCol] = new Queen{color, pos};
+      else if(newPiece == 'r')
+        board->board[toRow][toCol] = new Rook{color, pos};
+      else if(newPiece == 'b')
+        board->board[toRow][toCol] = new Bishop{color, pos};
+      else {
+        board->board[toRow][toCol] = new Knight{color, pos};
+      }
+    }
     board->display();
-    turn = 1-turn; // switch turns
+    turn = 1 - turn; // switch turns
   }
 
   inputStream.close();
