@@ -15,6 +15,14 @@ Pos Board::str_to(std::string str) {
 }
 
 Piece *Board::move(Pos from, Pos to) {
+  //promotion 
+  Piece *p = board[from.x][from.y];
+  if (p->type == 0 && static_cast<Pawn*>(p)->check_promotion(to)){
+    Queen q = Queen(p->color,from);
+    q.was_pawn = true;
+	  board[from.x][from.y] = &q;
+  }
+
   Piece *captured = board[to.x][to.y];
   board[to.x][to.y] = board[from.x][from.y];
   board[to.x][to.y]->pos.x = to.x;
@@ -24,6 +32,13 @@ Piece *Board::move(Pos from, Pos to) {
 }
 
 void Board::undo_move(Pos from, Pos to, Piece *captured) {
+  //promotion
+  Piece *p = board[from.x][from.y];
+  if (p->type == 4 && static_cast<Queen*>(p)->was_pawn){
+    Pawn q = Pawn(p->color, from);
+    board[from.x][from.y] = &q;
+  }
+
   board[from.x][from.y] = board[to.x][to.y];
   board[from.x][from.y]->pos.x = from.x;
   board[from.x][from.y]->pos.y = from.y;

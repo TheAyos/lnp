@@ -5,6 +5,7 @@ Queen::Queen(int color, Pos pos) {
     this->type = 4;
     this->color = color;
     this->pos = pos;
+	this->was_pawn = false;
 }
 
 std::vector<std::string> Queen::legal_moves(Piece* board[8][8]) {

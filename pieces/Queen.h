@@ -5,8 +5,9 @@
 
 struct Queen : Piece {
     Queen(int color, Pos pos);
-
-   std::vector<std::string> legal_moves(Piece* board[8][8]); 
+    bool was_pawn; //for promotion
+    
+    std::vector<std::string> legal_moves(Piece* board[8][8]); 
 };
 
 #endif
