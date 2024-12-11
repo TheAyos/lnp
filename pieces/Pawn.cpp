@@ -19,19 +19,23 @@ std::vector<std::string> Pawn::legal_moves(Piece* board[8][8]) {
 	int d = color ? 1 : -1;
 	Pos newpos {pos.x+d,pos.y};
 
-	if (newpos.in_bound() && board[newpos.x][newpos.y] == nullptr) // move one square
+	//move +1 to an empty square
+	if (newpos.in_bound() && board[newpos.x][newpos.y] == nullptr)
 		store.push_back(pos.to_str()+newpos.to_str());
-        
+    
+	//move +2 to an empty square if the pawn has not moved
 	newpos.x += d;
-	if (!has_moved() && board[newpos.x][newpos.y] == nullptr && board[newpos.x-d][newpos.y] == nullptr) // move two squares
+	if (!has_moved() && board[newpos.x][newpos.y] == nullptr && board[newpos.x-d][newpos.y] == nullptr) 
 		store.push_back(pos.to_str()+newpos.to_str());
-	// captures
+	
+	//check if we can capture an opponent
+	//right
 	newpos.x -= d;
 	newpos.y++;	
 	if (newpos.in_bound() && board[newpos.x][newpos.y] != nullptr)
 		if (board[newpos.x][newpos.y]->color != color)
 			store.push_back(pos.to_str()+newpos.to_str());
-
+	//left
 	newpos.y -= 2;
 	if (newpos.in_bound() && board[newpos.x][newpos.y] != nullptr)
 		if (board[newpos.x][newpos.y]->color != color)

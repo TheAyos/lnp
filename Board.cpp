@@ -32,12 +32,13 @@ void Board::undo_move(Pos from, Pos to, Piece *captured) {
 
 bool Board::in_check(int color) {
   Pos k_pos{0, 0};
+  //take the position of our king
   for(int i = 0; i < 8; i++)
     for(int j = 0; j < 8; j++)
       if(board[i][j] != nullptr && board[i][j]->type == 5
          && board[i][j]->color == color)
         k_pos = board[i][j]->pos;
-
+  //for all opponent pieces, check if they can move to our king
   for(int i = 0; i < 8; i++)
     for(int j = 0; j < 8; j++)
       if(board[i][j] != nullptr && board[i][j]->color != color)
@@ -54,8 +55,11 @@ std::vector<std::string> Board::all_legal_moves(int color) {
   std::vector<std::string> cache;
   for(int i = 0; i < 8; i++)
     for(int j = 0; j < 8; j++)
+      //for all positions occupied by the color
       if(board[i][j] != nullptr && board[i][j]->color == color) {
         // std::cout << i << " " << j << std::endl;
+
+        //we can take all legal moves with the function
         std::vector<std::string> store = board[i][j]->legal_moves(board);
         for(auto &str : store) {
           // std::cout << str << std::endl;

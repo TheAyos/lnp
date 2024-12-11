@@ -10,7 +10,7 @@ Rook::Rook(int color, Pos pos) {
 std::vector<std::string> Rook::legal_moves(Piece* board[8][8]) {
 	std::vector<std::string> store;
 	Pos newpos {pos.x,pos.y};
-
+	//lines
 	for (int dx = 1; dx < 8; dx++) {
 		newpos.x = pos.x+dx;
 		if (!newpos.in_bound()) break;
@@ -30,6 +30,7 @@ std::vector<std::string> Rook::legal_moves(Piece* board[8][8]) {
 		break;
 	}
 	
+	//columns
 	newpos.x = pos.x;
 
 	for (int dy = 1; dy < 8; dy++) {
