@@ -4,6 +4,8 @@ project(logic-and-proofs
   VERSION 0.1
   LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
             pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
             pieces/Pawn.h pieces/Pawn.cpp
