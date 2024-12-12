@@ -15,14 +15,6 @@ Pos Board::str_to(std::string str) {
 }
 
 Piece *Board::move(Pos from, Pos to) {
-  //promotion 
-  Piece *p = board[from.x][from.y];
-  if (p->type == 0 && static_cast<Pawn*>(p)->check_promotion(to)){
-    Queen q = Queen(p->color,from);
-    q.was_pawn = true;
-	  board[from.x][from.y] = &q;
-  }
-
   Piece *captured = board[to.x][to.y];
   board[to.x][to.y] = board[from.x][from.y];
   board[to.x][to.y]->pos.x = to.x;
@@ -32,13 +24,6 @@ Piece *Board::move(Pos from, Pos to) {
 }
 
 void Board::undo_move(Pos from, Pos to, Piece *captured) {
-  //promotion
-  Piece *p = board[from.x][from.y];
-  if (p->type == 4 && static_cast<Queen*>(p)->was_pawn){
-    Pawn q = Pawn(p->color, from);
-    board[from.x][from.y] = &q;
-  }
-
   board[from.x][from.y] = board[to.x][to.y];
   board[from.x][from.y]->pos.x = from.x;
   board[from.x][from.y]->pos.y = from.y;
@@ -73,8 +58,6 @@ std::vector<std::string> Board::all_legal_moves(int color) {
       //for all positions occupied by the color
       if(board[i][j] != nullptr && board[i][j]->color == color) {
         // std::cout << i << " " << j << std::endl;
-
-        //we can take all legal moves with the function
         std::vector<std::string> store = board[i][j]->legal_moves(board);
         for(auto &str : store) {
           // std::cout << str << std::endl;

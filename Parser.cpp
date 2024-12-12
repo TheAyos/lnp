@@ -48,24 +48,35 @@ int Parser::parseHistory(Board *board) {
     Util::exitError("Could not open file `" + historyFile + "`.");
   std::string line;
   while(std::getline(inputStream, line)) {
-    std::cout << line << std::endl;
 
     int fromRow, fromCol, toRow, toCol;
     // some sanity checks
-    std::cout << line.length() << std::endl;
     if(line.length() < 4 || line.length() > 5 || line[0] < 'a' || line[0] > 'h'
        || line[1] < '0' || line[1] > '9' || line[2] < 'a' || line[2] > 'h'
        || line[3] < '0' || line[3] > '9')
-      Util::exitError("sanity checks for line " + line + " failed");
+      Util::exitError("Failed sanity checks for line " + line);
 
     fromCol = (line[0] - 'a'); // ascii magic
     fromRow = std::stoi(line.substr(1, 1)) - 1;
     toCol = (line[2] - 'a');
     toRow = std::stoi(line.substr(3, 1)) - 1;
 
-    std::cout << fromRow << " " << fromCol << std::endl;
+    // const int deltaCol = abs(toCol - fromCol);
+    // const int deltaRow = abs(toRow - fromRow);
 
-    // temporary: check for castle:
+    // // Check for en passant opportunity
+    // board->enPassantSquare = Pos{-1, -1};  // Clear en passant
+    // if(board->board[fromRow][fromCol]->type == 0 && deltaRow == 2) { // if a pawn moves two squares
+    //   board->enPassantSquare = Pos{(fromRow + toRow) / 2, toCol};  // set target square to capture en passant
+    //   board->enPassantColor = board->board[fromRow][fromCol]->color;
+    // }
+
+    // FIXME: move to Board: check en passant from history
+    if(board->board[fromRow][fromCol]->type == 0)
+      if(fromCol != toCol && board->board[toRow][toCol] == nullptr)
+        board->board[fromRow][toCol] = nullptr;
+
+    // FIXME: temporary: check for castle:
     if(board->board[fromRow][fromCol]->type == 5) {
       if(fromRow == 0) {
         if(toCol == 6)
@@ -79,10 +90,9 @@ int Parser::parseHistory(Board *board) {
           board->move(Pos{7, 0}, Pos{7, 3});
       }
     }
-    // temporary: check en passant:
-    if(board->board[fromRow][fromCol]->type == 0)
-      if(fromCol != toCol && board->board[toRow][toCol] == nullptr)
-        board->board[fromRow][toCol] = nullptr;
+    
+
+    
 
     board->move(Pos{fromRow, fromCol}, Pos{toRow, toCol});
 
@@ -90,9 +100,9 @@ int Parser::parseHistory(Board *board) {
                      + "->" + std::to_string(toRow) + " "
                      + std::to_string(toCol));
 
-    if(line.length() == 6) {
+    if(line.length() == 5) {
       char newPiece = line[4];
-      // Util::printDebug("With promotion from ?? to " + newPiece);
+      Util::printDebug("With promotion from ?? to " + newPiece); //TODO
       int color = board->board[toRow][toCol]->color;
       Pos pos = Pos{toRow, toCol};
       if(newPiece == 'q')

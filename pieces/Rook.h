@@ -1,5 +1,4 @@
-#ifndef ROOK_H
-#define ROOK_H
+#pragma once
 
 #include "Piece.h"
 
@@ -9,5 +8,3 @@ struct Rook : Piece {
 
     std::vector<std::string> legal_moves(Piece* board[8][8]); 
 };
-
-#endif

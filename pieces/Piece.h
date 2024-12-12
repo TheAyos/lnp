@@ -1,9 +1,7 @@
+#pragma once
 #include <iostream>
 #include <vector>
 #include <string>
-
-#ifndef PIECE_H
-#define PIECE_H
 
 struct Pos {
 	int x;
@@ -11,7 +9,10 @@ struct Pos {
 
 	std::string to_str();
 	bool in_bound();
+	bool operator==(const Pos& other) const;
 };
+
+struct Board;
 
 struct Piece {
 	Pos pos;
@@ -22,7 +23,7 @@ struct Piece {
 	 * pos refers to position
 	 */
 
-	Piece() : pos {0,0}, color{0}, type{0} {}
+	Piece() : pos {0,0}, color{0}, type{0} {};
 
 	void set_pos(Pos pos);
 	Pos get_pos();
@@ -30,5 +31,3 @@ struct Piece {
 	int get_type();
 	virtual std::vector<std::string> legal_moves(Piece* board[8][8]) = 0;
 };
-
-#endif
