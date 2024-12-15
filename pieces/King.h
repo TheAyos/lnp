@@ -2,7 +2,7 @@
 #include "Piece.h"
 
 struct King : Piece {
-  bool is_castled;
+  // bool is_castled;
 
   King(int color, Pos pos);
 

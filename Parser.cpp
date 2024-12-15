@@ -48,9 +48,11 @@ int Parser::parseHistory(Board *board) {
     Util::exitError("Could not open file `" + historyFile + "`.");
   std::string line;
   while(std::getline(inputStream, line)) {
+    // std::cout << line << std::endl;
 
     int fromRow, fromCol, toRow, toCol;
     // some sanity checks
+    // std::cout << line.length() << std::endl;
     if(line.length() < 4 || line.length() > 5 || line[0] < 'a' || line[0] > 'h'
        || line[1] < '0' || line[1] > '9' || line[2] < 'a' || line[2] > 'h'
        || line[3] < '0' || line[3] > '9')
@@ -60,62 +62,49 @@ int Parser::parseHistory(Board *board) {
     fromRow = std::stoi(line.substr(1, 1)) - 1;
     toCol = (line[2] - 'a');
     toRow = std::stoi(line.substr(3, 1)) - 1;
+    std::string promotion_piece = "";
+    if (line.length() == 5) promotion_piece += line[4];     
+    
+    // std::cout << fromRow << " " << fromCol << std::endl;
+    
+    // en passant helper:
+    /*
+    if (board->board[fromRow][fromCol]->type == 0) {
+	if (!board->board[fromRow][fromCol]->has_moved) {
+		board->board[fromRow][fromCol]->just_moved = true;
+		board->board[fromRow][fromCol]->has_moved = true;
+	}
+	else {board->board[fromRow][fromCol]->just_moved = false;}
+    }*/
 
-    // const int deltaCol = abs(toCol - fromCol);
-    // const int deltaRow = abs(toRow - fromRow);
+    // check for castle:
+    /*
+    if(board->board[fromRow][fromCol]->type == 5) {
+    	if ( abs(fromCol-toCol) > 1 )
+		board->castle(Pos{fromRow, fromCol}, Pos{toRow, toCol});
+    }
+    else {board->move(Pos{fromRow, fromCol},Pos{toRow, toCol});}
+    */
 
-    // // Check for en passant opportunity
-    // board->enPassantSquare = Pos{-1, -1};  // Clear en passant
-    // if(board->board[fromRow][fromCol]->type == 0 && deltaRow == 2) { // if a pawn moves two squares
-    //   board->enPassantSquare = Pos{(fromRow + toRow) / 2, toCol};  // set target square to capture en passant
-    //   board->enPassantColor = board->board[fromRow][fromCol]->color;
-    // }
+    // castle helper:
 
-    // FIXME: move to Board: check en passant from history
+    // temporary: check en passant:
+    /*
     if(board->board[fromRow][fromCol]->type == 0)
       if(fromCol != toCol && board->board[toRow][toCol] == nullptr)
         board->board[fromRow][toCol] = nullptr;
 
-    // FIXME: temporary: check for castle:
-    if(board->board[fromRow][fromCol]->type == 5) {
-      if(fromRow == 0) {
-        if(toCol == 6)
-          board->move(Pos{0, 7}, Pos{0, 5});
-        if(toCol == 2)
-          board->move(Pos{0, 0}, Pos{0, 3});
-      } else {
-        if(toCol == 6)
-          board->move(Pos{7, 7}, Pos{7, 5});
-        if(toCol == 2)
-          board->move(Pos{7, 0}, Pos{7, 3});
-      }
-    }
-    
-
-    
-
     board->move(Pos{fromRow, fromCol}, Pos{toRow, toCol});
-
+   
+    
     Util::printDebug(std::to_string(fromRow) + " " + std::to_string(fromCol)
                      + "->" + std::to_string(toRow) + " "
-                     + std::to_string(toCol));
+                     + std::to_string(toCol));*/
+    int board_status[10];
+    board->move(Pos{fromRow, fromCol}.to_str()+Pos{toRow, toCol}.to_str()+promotion_piece, board_status);
 
-    if(line.length() == 5) {
-      char newPiece = line[4];
-      Util::printDebug("With promotion from ?? to " + newPiece); //TODO
-      int color = board->board[toRow][toCol]->color;
-      Pos pos = Pos{toRow, toCol};
-      if(newPiece == 'q')
-        board->board[toRow][toCol] = new Queen{color, pos};
-      else if(newPiece == 'r')
-        board->board[toRow][toCol] = new Rook{color, pos};
-      else if(newPiece == 'b')
-        board->board[toRow][toCol] = new Bishop{color, pos};
-      else {
-        board->board[toRow][toCol] = new Knight{color, pos};
-      }
-    }
-    board->display();
+
+    // board->display();
     turn = 1 - turn; // switch turns
   }
 
