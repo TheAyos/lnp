@@ -35,7 +35,10 @@ int main(int argc, char **argv) {
   std::cout << Chess.my_move << std::endl;
   // std::cout << moves[rand_int] << std::endl;
   // parser.writeNextMove(moves[rand_int]);
-  parser.writeNextMove(Chess.my_move);
+  if (Chess.my_move == "")
+	parser.writeNextMove(moves[0]);
+  else
+  	parser.writeNextMove(Chess.my_move);
   Chess.my_board.display();
  
   /*
