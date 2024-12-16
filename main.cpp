@@ -24,8 +24,16 @@ int main(int argc, char **argv) {
     // 4       197281          0       0.16    13
     // 5       4865351         -258    3.9     13
     // 6       119048441       -11883  1e+02   12
+    // after adding special moves:
+    // Depth   Calculated      Error   seconds Kpos/s
+    // 1       20              0       6.5e-05 3.1
+    // 2       400             0       0.00088 4.6
+    // 3       8902            0       0.018   4.8
+    // 4       197281          0       0.43    4.6
+    // 5       4865609         0       11      4.5
+    // 6       119060324       0       2.8e+02 4.3
     // TESTING: perft results
-    int max_depth = 6;
+    int max_depth = 7;
     std::vector<long> reference = {0, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860};
     std::cout << "\nComparison with Perft Results from chessprogramming.org:" << std::endl;
     std::cout << "Depth\tCalculated\tError\tseconds\tKpos/s" << std::endl;
@@ -64,7 +72,8 @@ int main(int argc, char **argv) {
   // std::cout << Chess.search(4,1) << std::endl;
   int rand_int = rand() % moves.size();
 
-  double db = Chess.search_best(3, turn, turn?-9999.0:9999.0);
+  // double db = Chess.search_best(MAX_ALPHA_BETA_DEPTH, turn, turn?-9999.0:9999.0);
+  double db = Chess.search_best_alpha_beta(MAX_ALPHA_BETA_DEPTH, turn, turn?-999999:999999, -999999, 999999);
 
   std::cout << Chess.my_move << std::endl;
   // std::cout << moves[rand_int] << std::endl;

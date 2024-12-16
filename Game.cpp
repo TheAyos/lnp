@@ -5,7 +5,14 @@ Game::Game(){
 }
 
 double Game::search_best(int depth, int t, double prev_eval) {
+	// Total nodes searched: 433 at depth 3
+	// Total nodes searched: 7946 at depth 4
 	// if (depth == 3) my_move.clear();
+	static long nodes_searched = 0;
+	if (depth == MAX_ALPHA_BETA_DEPTH) {
+		nodes_searched = 0; // reset at start of new search
+	}
+	nodes_searched++;
 
 	double value;
 	if (t == 1) value = -9999;
@@ -41,10 +48,70 @@ double Game::search_best(int depth, int t, double prev_eval) {
 		my_board.undo_move(str,board_status); //undo move
 	}
 
-	if (depth == 3) {
+	if (depth == MAX_ALPHA_BETA_DEPTH) {
+		std::cout << "Total nodes searched: " << nodes_searched << std::endl;
 		return 0;
 	}
 	else return value;
+}
+
+int Game::search_best_alpha_beta(int depth, int t, int prev_eval, int alpha, int beta) {
+	// Total nodes searched: 433 at depth 3
+	// Total nodes searched: 7946 at depth 4
+   if (depth == 0) return evaluate();
+   
+   static long nodes_searched = 0;
+   if (depth == MAX_ALPHA_BETA_DEPTH) {
+      nodes_searched = 0; // reset at start of new search
+   }
+   nodes_searched++;
+
+   int bestValue = t ? -999999 : 999999;
+   int score = 0;
+   
+   std::vector<std::string> moves = my_board.all_legal_moves(t);
+   for (const auto& move : moves) {
+      int board_status[10];
+      my_board.move(move, board_status);
+      
+      score = search_best_alpha_beta(depth-1, 1-t, prev_eval, alpha, beta);
+      
+      if (t) { // maximizing player
+         if (score > bestValue) {
+            bestValue = score;
+            if (depth == MAX_ALPHA_BETA_DEPTH) {
+               my_move = move;
+            }
+            if (score > alpha) {
+               alpha = score;
+            }
+         }
+      }
+      else { // minimizing player 
+         if (score < bestValue) {
+            bestValue = score;
+            if (depth == MAX_ALPHA_BETA_DEPTH) {
+               my_move = move;
+            }
+            if (score < beta) {
+               beta = score;
+            }
+         }
+      }
+      
+      my_board.undo_move(move, board_status);
+      
+      if (beta <= alpha) {
+         break; // alpha-beta pruning
+      }
+   }
+
+   if (depth == MAX_ALPHA_BETA_DEPTH) {
+      std::cout << "Total nodes searched: " << nodes_searched << std::endl;
+      return 0;
+   }
+   
+   return bestValue;
 }
 
 double Game::evaluate(){
@@ -54,16 +121,16 @@ double Game::evaluate(){
 		for (int j = 0; j < 8; j++)
 			if (my_board.board[i][j]!=nullptr) evaluation += evaluate_piece(my_board.board[i][j]);
 	
-	if (my_board.in_check(1)) {
-		evaluation -= 30;
-		std::vector<std::string> moves = my_board.all_legal_moves(1);
-		if (moves.size() == 0) return -9999;
-	}
-	else if (my_board.in_check(0)) {
-		evaluation += 30;
-		std::vector<std::string> moves = my_board.all_legal_moves(0);
-		if (moves.size() == 0) return 9999;
-	}
+	// if (my_board.in_check(1)) {
+	// 	evaluation -= 30;
+	// 	std::vector<std::string> moves = my_board.all_legal_moves(1);
+	// 	if (moves.size() == 0) return -9999;
+	// }
+	// else if (my_board.in_check(0)) {
+	// 	evaluation += 30;
+	// 	std::vector<std::string> moves = my_board.all_legal_moves(0);
+	// 	if (moves.size() == 0) return 9999;
+	// }
 	return evaluation;
 }
 
