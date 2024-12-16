@@ -121,16 +121,16 @@ double Game::evaluate(){
 		for (int j = 0; j < 8; j++)
 			if (my_board.board[i][j]!=nullptr) evaluation += evaluate_piece(my_board.board[i][j]);
 	
-	// if (my_board.in_check(1)) {
-	// 	evaluation -= 30;
-	// 	std::vector<std::string> moves = my_board.all_legal_moves(1);
-	// 	if (moves.size() == 0) return -9999;
-	// }
-	// else if (my_board.in_check(0)) {
-	// 	evaluation += 30;
-	// 	std::vector<std::string> moves = my_board.all_legal_moves(0);
-	// 	if (moves.size() == 0) return 9999;
-	// }
+	if (my_board.in_check(1)) {
+		evaluation -= 30;
+		std::vector<std::string> moves = my_board.all_legal_moves(1);
+		if (moves.size() == 0) return -9999;
+	}
+	else if (my_board.in_check(0)) {
+		evaluation += 30;
+		std::vector<std::string> moves = my_board.all_legal_moves(0);
+		if (moves.size() == 0) return 9999;
+	}
 	return evaluation;
 }
 

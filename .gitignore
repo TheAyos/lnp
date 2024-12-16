@@ -23,7 +23,7 @@ CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
-Testing
+
 Makefile
 cmake_install.cmake
 install_manifest.txt
@@ -47,3 +47,4 @@ _deps
 build/
 .vscode
 move.txt
+*.csv

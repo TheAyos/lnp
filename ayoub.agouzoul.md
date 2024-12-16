@@ -5,3 +5,6 @@
 ### Week 2:
 - Fixed a bunch of merge conflicts
 - Finished file IO (arg parsing, history file parsing, and move output to correct file)
+### Week 3:
+- Improved performance of the AI by using alpha-beta pruning instead of minimax
+- Suggested using a C++ profiler to target optimization efforts (gprof, std::vector functions use 15% of cpu time, switching to bitboard representation will improve performance)
