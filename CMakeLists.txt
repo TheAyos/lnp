@@ -17,6 +17,10 @@ add_executable(logic-and-proofs main.cpp)
 include_directories(.)
 target_link_libraries(logic-and-proofs PRIVATE game)
 
+add_library(precalcer Util.h Util.cpp)
+add_executable(precalc precalc.cpp)
+target_link_libraries(precalcer PRIVATE precalcer)
+
 
 
 # with flags
