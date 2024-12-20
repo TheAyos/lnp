@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <stdlib.h>
 #include <time.h>
+#include "BitBoard.h"
 
 #define TESTING false
 
@@ -54,32 +55,36 @@ int main(int argc, char **argv) {
   }
   #endif
 
-  Parser parser{argc, argv};
-  // std::cout << "parsing" << std::endl;
-  parser.parseArgs();
-  // std::cout << "arguments received" << std::endl;
-  int turn = parser.parseHistory(&Chess.my_board);
+  // Parser parser{argc, argv};
+  // // std::cout << "parsing" << std::endl;
+  // parser.parseArgs();
+  // // std::cout << "arguments received" << std::endl;
+  // int turn = parser.parseHistory(&Chess.my_board);
 
+  // // Chess.my_board.display();
+
+  // std::cout << "TURN FOR " << (turn ? "black" : "white") << std::endl;
+  // std::vector<std::string> moves = Chess.my_board.all_legal_moves(turn);
+  
+  // // for (auto & element : moves) std::cout << element << std::endl;
+  
+  // // moves = Chess.my_board.all_legal_moves(1);
+  // // for (auto&element:moves) std::cout << element << std::endl;
+  // // std::cout << Chess.search(4,1) << std::endl;
+  // int rand_int = rand() % moves.size();
+
+  // // double db = Chess.search_best(MAX_ALPHA_BETA_DEPTH, turn, turn?-9999.0:9999.0);
+  // double db = Chess.search_best_alpha_beta(MAX_ALPHA_BETA_DEPTH, turn, turn?-999999:999999, -999999, 999999);
+
+  // std::cout << Chess.my_move << std::endl;
+  // // std::cout << moves[rand_int] << std::endl;
+  // // parser.writeNextMove(moves[rand_int]);
+  // parser.writeNextMove(Chess.my_move);
   // Chess.my_board.display();
 
-  std::cout << "TURN FOR " << (turn ? "black" : "white") << std::endl;
-  std::vector<std::string> moves = Chess.my_board.all_legal_moves(turn);
-  
-  // for (auto & element : moves) std::cout << element << std::endl;
-  
-  // moves = Chess.my_board.all_legal_moves(1);
-  // for (auto&element:moves) std::cout << element << std::endl;
-  // std::cout << Chess.search(4,1) << std::endl;
-  int rand_int = rand() % moves.size();
-
-  // double db = Chess.search_best(MAX_ALPHA_BETA_DEPTH, turn, turn?-9999.0:9999.0);
-  double db = Chess.search_best_alpha_beta(MAX_ALPHA_BETA_DEPTH, turn, turn?-999999:999999, -999999, 999999);
-
-  std::cout << Chess.my_move << std::endl;
-  // std::cout << moves[rand_int] << std::endl;
-  // parser.writeNextMove(moves[rand_int]);
-  parser.writeNextMove(Chess.my_move);
-  Chess.my_board.display();
+  // std::cout << std::endl << std::endl << std::endl;
+  // BB board;
+  // board.display();
  
   /*
   Game Chess1;
