@@ -8,14 +8,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pg") # for profiling
 
-add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
-            pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
-            pieces/Pawn.h pieces/Pawn.cpp
-            pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
-            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
-add_executable(logic-and-proofs main.cpp)
+#add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
+#            pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
+#            pieces/Pawn.h pieces/Pawn.cpp
+#            pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
+#            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
+#add_executable(logic-and-proofs main.cpp)
 include_directories(.)
-target_link_libraries(logic-and-proofs PRIVATE game)
+#target_link_libraries(logic-and-proofs PRIVATE game)
 
 add_executable(precalc precalc.cpp)
 
