@@ -8,3 +8,7 @@
 ### Week 3:
 - Improved performance of the AI by using alpha-beta pruning instead of minimax
 - Suggested using a C++ profiler to target optimization efforts (gprof, std::vector functions use 15% of cpu time, switching to bitboard representation will improve performance)
+### Week 4:
+- Moved to bitboard
+<!-- helpful resources : -->
+<!-- https://www.geeksforgeeks.org/friend-class-function-cpp/ -->

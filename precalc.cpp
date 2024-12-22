@@ -156,7 +156,7 @@ U64 set_occupancy(int index, int mask_nbits, U64 attack_mask) {
     U64 occupancy = 0ULL;
 
     for (int n = 0; n < mask_nbits; n++) {
-        int square = index_ls1b(attack_mask);
+        int square = get_lsb_index(attack_mask);
         clear_bit(attack_mask, square);
         // check that occupancy is in bounds
         if (index & (1 << n)) occupancy |= (1ULL << square);
@@ -480,9 +480,9 @@ int main(int argc, char* argv[]) {
     set_bit(bb, h4);
     display_bits(bb);
     std::cout << count_bits(bb) << std::endl;
-    std::cout << index_ls1b(bb) << std::endl;
-    clear_bit(bb, index_ls1b(bb));
-    std::cout << index_ls1b(bb) << std::endl;
+    std::cout << get_lsb_index(bb) << std::endl;
+    clear_bit(bb, get_lsb_index(bb));
+    std::cout << get_lsb_index(bb) << std::endl;
     std::cout << count_bits(bb) << std::endl;
     display_bits(bb);
     U64 attack_mask = get_rook_attack_masks(a1);
@@ -536,18 +536,16 @@ int main(int argc, char* argv[]) {
     }
     // init_magic_numbers();
 
-    Board board;
-    display_bits(board.bitboards[PAWN]);
-    std::cout << board << std::endl;
+    // Board board;
+    // display_bits(board.bitboards[PAWN]);
+    // std::cout << board << std::endl;
 
-    printf("%c\n", letter_pieces[char_to_pieces['Q']]);
+    // printf("%c\n", letter_pieces[char_to_pieces['Q']]);
 
-    BitMove move(g2, d8, queen, ROOK, true, 0, 0, PAWN);
-    move.print();
+    // BitMove move(g2, d8, queen, ROOK, true, 0, 0, PAWN);
+    // move.print();
 
-    std::cout << move.get_algebraic_notation() << std::endl;
+    // std::cout << move.get_algebraic_notation() << std::endl;
 
     return 0;
 }
-
-// 29- ~12min moves, print_move_list..;

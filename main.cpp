@@ -52,13 +52,18 @@ int main(int argc, char **argv) {
 #endif
 
     Parser parser{argc, argv};
-    // std::cout << "parsing" << std::endl;
     parser.parseArgs();
-    // std::cout << "arguments received" << std::endl;
     Board board;
-    int turn = parser.parseHistory(board);
+    parser.parseHistory(board);
+    std::cout << board.generate_moves() << std::endl;
 
-    std::cout << "TURN FOR " << (turn ? "black" : "white") << std::endl;
+    // Board fen_test_board = Board(FEN_POS_STARTING);
+    // std::cout << fen_test_board << std::endl;
+    // std::cout << fen_test_board.generate_moves() << std::endl;
+
+
+
+    // std::cout << "TURN FOR " << (turn ? "black" : "white") << std::endl;
     // std::vector<std::string> moves = Chess.my_board.all_legal_moves(turn);
 
     // // for (auto & element : moves) std::cout << element << std::endl;
@@ -76,6 +81,9 @@ int main(int argc, char **argv) {
     // // parser.writeNextMove(moves[rand_int]);
     // parser.writeNextMove(Chess.my_move);
     // Chess.my_board.display();
+
+    // BitMoveVec moves = board.generate_moves();
+    // std::cout << moves << std::endl;
 
     return 0;
 }

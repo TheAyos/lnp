@@ -18,6 +18,7 @@ std::map<char, int> char_to_pieces
 
 const char letter_pieces[] = "PNBRQKpnbrqk";
 
+const int NO_PROMOTION = 0;
 std::map<int, char> promoted_pieces = {
     {QUEEN, 'q'}, {ROOK, 'r'}, {BISHOP, 'b'}, {KNIGHT, 'n'}, {queen, 'q'}, {rook, 'r'}, {bishop, 'b'}, {knight, 'n'}};
 
@@ -93,3 +94,7 @@ const U64 not_ab_file = not_file_masks[a] & not_file_masks[b];
     - 1111 : all castling rights
  */
 enum CastlingRights { WK = 1, WQ = 2, BK = 4, BQ = 8 };
+
+
+const std::string FEN_POS_STARTING = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const std::string FEN_POS_2 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ";

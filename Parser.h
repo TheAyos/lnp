@@ -16,15 +16,15 @@ struct Parser {
     std::string outputFile;
 
     Parser(int argc, char **argv);
-    int parseArgs();
-    int parseHistory(Board &board);
-    int writeNextMove(const std::string &moveString);
+    void parseArgs();
+    void parseHistory(Board &board);
+    void writeNextMove(const std::string &moveString);
 };
 
 Parser::Parser(int argc, char **argv) : argc{argc}, argv{argv} {
 }
 
-int Parser::parseArgs() {
+void Parser::parseArgs() {
     // for each argument
     for(int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -51,11 +51,9 @@ int Parser::parseArgs() {
     } else {
         Util::exitError("-m option is required.");
     }
-    return 0;
 }
 
-int Parser::parseHistory(Board &board) {
-    int turn = 1;
+void Parser::parseHistory(Board &board) {
     std::ifstream inputStream(historyFile);
 
     if(!inputStream || !inputStream.is_open())
@@ -77,22 +75,21 @@ int Parser::parseHistory(Board &board) {
         std::cout << coord_to_sq[from] << "->" << coord_to_sq[to] << std::endl;
         std::cout << sq_to_coord[coord_to_sq[from]] << "->" << sq_to_coord[coord_to_sq[to]] << std::endl;
 
-        char promotion_piece = (line.length() == 5) ? line[4] : ' ';
 
         int from_square = coord_to_sq.at(from);
         int to_square = coord_to_sq.at(to);
-        BitMove line_move = BitMove(from_square, to_square, NOPIECE, char_to_pieces[promotion_piece], 0, 0, 0, 0);
+        char promotion_piece = (line.length() == 5) ? line[4] : ' ';
+        
+        BitMove line_move = board.parse_algebraic_move(from_square, to_square, promotion_piece);
         board.move(line_move);
 
         std::cout << board;
-        turn = 1 - turn;  // switch turns
     }
 
     inputStream.close();
-    return turn;
 }
 
-int Parser::writeNextMove(const std::string &moveString) {
+void Parser::writeNextMove(const std::string &moveString) {
     std::ofstream outputStream(outputFile, std::ios::trunc);
     if(!outputStream)
         Util::exitError("Could not open file `" + outputFile + "` for writing.");
@@ -101,5 +98,4 @@ int Parser::writeNextMove(const std::string &moveString) {
     Util::printDebug("Wrote to ouput file " + outputFile + " move : " + moveString);
 
     outputStream.close();
-    return 0;
 }
