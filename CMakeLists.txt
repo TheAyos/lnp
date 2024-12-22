@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
 project(logic-and-proofs
-  VERSION 0.1
+  VERSION 1.1
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -14,9 +14,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
 #            pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
 #            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
 #add_executable(logic-and-proofs main.cpp)
-include_directories(.)
 #target_link_libraries(logic-and-proofs PRIVATE game)
 
+include_directories(.)
 add_executable(precalc precalc.cpp)
 
 

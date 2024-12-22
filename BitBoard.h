@@ -75,25 +75,7 @@ enum CastlingRights { WK = 1, WQ = 2, BK = 4, BQ = 8 };
 enum Pieces { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, pawn, knight, bishop, rook, queen, king };
 
 const char letter_pieces[] = "PNBRQKpnbrqk";
-int char_to_pieces[128];
 
-void init_char_to_pieces() {
-    for (int i = 0; i < 128; i++) {
-        char_to_pieces[i] = -1;
-    }
-    char_to_pieces['P'] = PAWN;
-    char_to_pieces['N'] = KNIGHT;
-    char_to_pieces['B'] = BISHOP;
-    char_to_pieces['R'] = ROOK;
-    char_to_pieces['Q'] = QUEEN;
-    char_to_pieces['K'] = KING;
-    char_to_pieces['p'] = pawn;
-    char_to_pieces['n'] = knight;
-    char_to_pieces['b'] = bishop;
-    char_to_pieces['r'] = rook;
-    char_to_pieces['q'] = queen;
-    char_to_pieces['k'] = king;
-}
 
 // clang-format on
 
@@ -181,6 +163,7 @@ void display(const U64& bitboard) {
 }
 
 //OPTI
+// https://www.geeksforgeeks.org/inline-functions-cpp/ reduce call overhead, kinda like macro
 int count_bits(U64 bb) {
     int nbits = 0;
     while (bb) {
@@ -197,6 +180,8 @@ int index_ls1b(U64 bb) {
 }
 
 
+
+
 class Board {
     public:
         U64 bitboards[12];
@@ -208,6 +193,7 @@ class Board {
 
         Board();
         void print_board();
+        void generate_moves();
 };
 Board::Board() {
     set_bit(bitboards[PAWN], g2);
@@ -293,4 +279,25 @@ void Board::print_board() {
 
     output += footer;
     std::cout << output << std::endl;
+}
+
+void Board::generate_moves() {
+    // int from, to;
+    // U64 bb, attacks;
+
+    // for (int piece = PAWN; piece < king; piece++) {
+    //     bb = bitboards[piece];
+    //     if (turn == W) {
+    //         if (piece == PAWN) {
+    //             while (bb) {
+    //                 from = index_ls1b(bb);
+    //                 to = from - 8;
+    //                 attacks = get_pawn_attack_masks(W, from);
+    //                 clear_bit(bb, from);
+    //             }
+    //         }
+    //     } else {
+            
+    //     }
+    // }
 }

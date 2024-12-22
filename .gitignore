@@ -47,4 +47,5 @@ _deps
 build/
 .vscode
 move.txt
+*nah*
 *.csv
