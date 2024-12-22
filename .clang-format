@@ -1,4 +1,5 @@
 ---
+BasedOnStyle: Google
 AlignEscapedNewlinesLeft: 'true'
 AlignTrailingComments: 'false'
 AllowAllParametersOfDeclarationOnNextLine: 'true'

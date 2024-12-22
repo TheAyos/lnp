@@ -1,201 +1,67 @@
 #pragma once
 #include <iostream>
-typedef unsigned long long U64;
 
-/* source : https://wiki.sharewiz.net/doku.php?id=chess:programming:bitboards
- RANKS:
-   8 |       56   57   58   59   60   61   62   63  (MSB,
-   7 |       48   49   50   51   52   53   54   55  left)
-   6 |       40   41   42   43   44   45   46   47
-   5 |       32   33   34   35   36   37   38   39
-   4 |       24   25   26   27   28   29   30   31
-   3 |       16   17   18   19   20   21   22   23
-   2 |        8    9   10   11   12   13   14   15
-   1 | (LSB,  0    1    2    3    4    5    6    7
-       right)
-           -------------------------------------------
- FILES:      a     b    c    d    e    f    g    h
- */
-
-
-/* -------------------------------------------------------------------------- */
-/*                                    enums                                   */
-/* -------------------------------------------------------------------------- */
-
-// clang-format off
-enum Files { a, b, c, d, e, f, g, h };
-// square enumeration, from a1 to h8 (0 to 63)
-enum Squares {
-    a8,b8,c8,d8,e8,f8,g8,h8,
-    a7,b7,c7,d7,e7,f7,g7,h7,
-    a6,b6,c6,d6,e6,f6,g6,h6,
-    a5,b5,c5,d5,e5,f5,g5,h5,
-    a4,b4,c4,d4,e4,f4,g4,h4,
-    a3,b3,c3,d3,e3,f3,g3,h3,
-    a2,b2,c2,d2,e2,f2,g2,h2,
-    a1,b1,c1,d1,e1,f1,g1,h1,
-};
-
-// regex ([abcdefgh][1-8]), // "$1",
-const char* sq_to_coord[] = {
-    "a8","b8","c8","d8","e8","f8","g8","h8",
-    "a7","b7","c7","d7","e7","f7","g7","h7",
-    "a6","b6","c6","d6","e6","f6","g6","h6",
-    "a5","b5","c5","d5","e5","f5","g5","h5",
-    "a4","b4","c4","d4","e4","f4","g4","h4",
-    "a3","b3","c3","d3","e3","f3","g3","h3",
-    "a2","b2","c2","d2","e2","f2","g2","h2",
-    "a1","b1","c1","d1","e1","f1","g1","h1",
-};
-
-const int coord_to_sq[] = {
-    a8,b8,c8,d8,e8,f8,g8,h8,
-    a7,b7,c7,d7,e7,f7,g7,h7,
-    a6,b6,c6,d6,e6,f6,g6,h6,
-    a5,b5,c5,d5,e5,f5,g5,h5,
-    a4,b4,c4,d4,e4,f4,g4,h4,
-    a3,b3,c3,d3,e3,f3,g3,h3,
-    a2,b2,c2,d2,e2,f2,g2,h2,
-    a1,b1,c1,d1,e1,f1,g1,h1,
-};
-
-enum Colors { W, B, WB };
-
-/* castling rights bit template
-    - 0001 : white kingside
-    - 0010 : white queenside
-    - 0100 : black kingside
-    - 1000 : black queenside
-    ...
-    - 0000 : no castling
-    - 1111 : all castling rights
- */
-enum CastlingRights { WK = 1, WQ = 2, BK = 4, BQ = 8 };
-
-enum Pieces { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, pawn, knight, bishop, rook, queen, king };
-
-const char letter_pieces[] = "PNBRQKpnbrqk";
-
-
-// clang-format on
-
-/* -------------------------------------------------------------------------- */
-/*                          used by attack generation                         */
-/* -------------------------------------------------------------------------- */
-const U64 not_file_masks[8] = {
-    18374403900871474942ULL,
-    18302063728033398269ULL,
-    18157383382357244923ULL,
-    17868022691004938231ULL,
-    17289301308300324847ULL,
-    16131858542891098079ULL,
-    13816973012072644543ULL,
-    9187201950435737471ULL,
-};
-
-const U64 not_gh_file = not_file_masks[h] & not_file_masks[g];
-const U64 not_ab_file = not_file_masks[a] & not_file_masks[b];
-
-
-
-/* ----------------------------- bit operations ----------------------------- */
-
-U64 get_bit(const U64& bitboard, int square) {
-    return (bitboard >> square) & 1ULL;
-}
-void set_bit(U64& bitboard, int square) {
-    bitboard |= (1ULL << square);
-}
-void clear_bit(U64& bitboard, int square) {
-    bitboard &= ~(1ULL << square);
-}
-
-int rf_to_square(int rank, int file) {
-    return 8 * rank + file;
-}
-void square_to_rf(int square, int &rank, int &file) {
-    rank = square / 8;
-    file = square % 8;
-}
-
-void display_bits(const U64& bitboard){
-    std::cout << std::endl << "BB repr: " << bitboard << std::endl;
-    for (int rank = 0; rank < 8; rank++){
-        std::cout << std::to_string(8 - rank) << "  ";
-        for (int file = 0; file < 8; file++){
-            int square = 8 * rank + file;
-            std::cout << " " << get_bit(bitboard, square);
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl << "   ";
-    for (int file = 0; file < 8; file++){
-        std::cout << " " << (char)('a' + file);
-    }
-    std::cout << std::endl;
-};
-
-void display(const U64& bitboard) {
-    const std::string footer = "    a    b    c    d    e    f    g    h";
-    const std::string emptySquare = "   ";
-
-    std::string line = "  ";
-    for(int i = 0; i < 8; i++) 
-        line += " ----";
-    line += "\n";
-
-    std::string output = line;
-
-    for (int rank = 0; rank < 8; ++rank) {
-        output += std::to_string(8 - rank) + " ";
-        for (int file = 0; file < 8; ++file) {
-            output += "| ";
-            int square = rf_to_square(rank, file);
-            std::string pieceRepr = get_bit(bitboard, square) ? " x " : "   ";
-            output += get_bit(bitboard, square) ? pieceRepr : emptySquare;
-        }
-        output += "|\n" + line;
-    }
-
-    output += footer;
-    std::cout << output << std::endl;
-    std::cout << "  BB repr: " << bitboard << std::endl;
-}
-
-//OPTI
-// https://www.geeksforgeeks.org/inline-functions-cpp/ reduce call overhead, kinda like macro
-int count_bits(U64 bb) {
-    int nbits = 0;
-    while (bb) {
-        nbits++;
-        // set LSB to 0
-        bb &= bb - 1;
-    }
-    return nbits;
-}
-//OPTI
-int index_ls1b(U64 bb) {
-    if (!bb) return -1; // if bitboard is zero, bad
-    return count_bits((bb & -bb) - 1);
-}
-
-
-
+#include "BitOps.h"
+#include "Definitions.h"
+#include "BitMove.h"
 
 class Board {
-    public:
-        U64 bitboards[12];
-        U64 occupancies[3];
+   public:
+    U64 bitboards[12];
+    U64 occupancies[3];
 
-        int turn = W;
-        int enpassant_square = -1;
-        int castling_rights = 0;
+    int turn = W;
+    int enpassant_square = -1;
+    int castling_rights = 0;
 
-        Board();
-        void print_board();
-        void generate_moves();
+    Board();
+
+    // https://www.geeksforgeeks.org/friend-class-function-cpp/
+    friend std::ostream& operator<<(std::ostream& os, const Board& board);
+
+    void move(BitMove &move) {
+        //TODO: save state
+        int from = move.get_from();
+        int to = move.get_to();
+        int piece = move.get_piece();
+        int promotion = move.get_promoted();
+        int capture = move.get_capture();
+        int doublepush = move.get_doublepush();
+        int enpassant = move.get_enpassant();
+        int castling = move.get_castling();
+
+        // sanitize parser input
+        // search for piece
+        if(piece == NOPIECE) {
+            for (int bb_piece = PAWN; bb_piece <= king; bb_piece++) {
+                if (get_bit(bitboards[bb_piece], from)) {
+                    piece = bb_piece;
+                    break;
+                }
+            }
+        }
+
+        clear_bit(bitboards[piece], from); // remove piece from old square
+        set_bit(bitboards[piece], to); // add piece to new square
+
+        //TODO: handle captures
+        //TODO: handle promotions
+        //TODO: handle enpassant
+        //TODO: handle castling
+        //TODO: handle checks
+    }
+
+    void generate_moves();
+
+   private:
+    void setup_initial_pieces();
 };
+
 Board::Board() {
+    setup_initial_pieces();
+}
+
+void Board::setup_initial_pieces() {
     set_bit(bitboards[PAWN], g2);
     set_bit(bitboards[PAWN], h2);
     set_bit(bitboards[PAWN], f2);
@@ -218,7 +84,7 @@ Board::Board() {
     set_bit(bitboards[KNIGHT], g1);
     set_bit(bitboards[knight], b8);
     set_bit(bitboards[knight], g8);
-    
+
     set_bit(bitboards[BISHOP], c1);
     set_bit(bitboards[BISHOP], f1);
     set_bit(bitboards[bishop], c8);
@@ -236,68 +102,65 @@ Board::Board() {
     set_bit(bitboards[king], e8);
 }
 
-void Board::print_board() {
+std::ostream& operator<<(std::ostream& os, const Board& board) {
     const std::string footer = "    a    b    c    d    e    f    g    h";
     const std::string emptySquare = "   ";
 
     std::string line = "  ";
-    for(int i = 0; i < 8; i++) 
+    for(int i = 0; i < 8; i++)
         line += " ----";
     line += "\n";
 
     std::string output = line;
 
-    for (int rank = 0; rank < 8; ++rank) {
+    for(int rank = 0; rank < 8; ++rank) {
         output += std::to_string(8 - rank) + " ";
-        for (int file = 0; file < 8; ++file) {
+        for(int file = 0; file < 8; ++file) {
             output += "| ";
             int square = rf_to_square(rank, file);
 
-
-            if (!file) std::cout << std::to_string(8 - rank) << "  ";
-
             int piece = -1;
 
-            for (int i = 0; i < 12; i++) {
-                if (get_bit(bitboards[i], square)) {
+            for(int i = 0; i < 12; i++) {
+                if(get_bit(board.bitboards[i], square)) {
                     piece = i;
                     break;
                 }
-            }           
+            }
             std::string pieceRepr = (piece == -1 ? " " : std::string(1, letter_pieces[piece]));
-            output += get_bit(bitboards[piece], square) ? pieceRepr + "  " : emptySquare;
+            output += get_bit(board.bitboards[piece], square) ? pieceRepr + "  " : emptySquare;
         }
         output += "|\n" + line;
     }
 
-    std::cout << "Turn: " << (!turn ? "White" : "Black") << std::endl;
-    std::cout << "Enpassant: " << (enpassant_square != -1 ? sq_to_coord[enpassant_square] : "xx");
-    std::cout << "\tCastling: " << (castling_rights & WK ? "WK " : "x")
-              << (castling_rights & WQ ? "WQ " : "x")
-              << (castling_rights & BK ? "BK " : "x")
-              << (castling_rights & BQ ? "BQ " : "x") << std::endl;
+    os << "Turn: " << (!board.turn ? "White" : "Black") << std::endl;
+    os << "Enpassant: " << (board.enpassant_square != -1 ? sq_to_coord[board.enpassant_square] : "xx");
+    os << "\tCastling: " << (board.castling_rights & WK ? "WK " : "x") << (board.castling_rights & WQ ? "WQ " : "x")
+       << (board.castling_rights & BK ? "BK " : "x") << (board.castling_rights & BQ ? "BQ " : "x") << std::endl;
 
     output += footer;
-    std::cout << output << std::endl;
+    os << output << std::endl;
+
+    return os;
 }
 
 void Board::generate_moves() {
-    // int from, to;
-    // U64 bb, attacks;
+    int from, to;
+    U64 bb, attacks;
 
-    // for (int piece = PAWN; piece < king; piece++) {
-    //     bb = bitboards[piece];
-    //     if (turn == W) {
-    //         if (piece == PAWN) {
-    //             while (bb) {
-    //                 from = index_ls1b(bb);
-    //                 to = from - 8;
-    //                 attacks = get_pawn_attack_masks(W, from);
-    //                 clear_bit(bb, from);
-    //             }
-    //         }
-    //     } else {
-            
-    //     }
-    // }
+    for (int piece = PAWN; piece < king; piece++) {
+        bb = bitboards[piece];
+        if (turn == W) {
+            if (piece == PAWN) {
+                while (bb) {
+                    from = index_ls1b(bb);
+                    to = from - 8;
+                    attacks = get_pawn_attack_mask(W, from);
+                    clear_bit(bb, from);
+                }
+            }
+        } else {
+
+        }
+    }
 }

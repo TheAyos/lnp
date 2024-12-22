@@ -5,7 +5,8 @@ project(logic-and-proofs
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pg") # for profiling
 
 #add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
@@ -13,12 +14,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
 #            pieces/Pawn.h pieces/Pawn.cpp
 #            pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
 #            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
-#add_executable(logic-and-proofs main.cpp)
-#target_link_libraries(logic-and-proofs PRIVATE game)
+
+add_library(headers Parser.h Util.h
+            bitpieces/Piece.h bitpieces/Pawn.h
+            BitBoard.h BitMove.h BitOps.h)
+# the next line allows us to not use .cpp files all the time
+set_target_properties(headers PROPERTIES LINKER_LANGUAGE CXX)
+
+add_executable(logic-and-proofs main.cpp)
+target_link_libraries(logic-and-proofs PRIVATE headers)
 
 include_directories(.)
 add_executable(precalc precalc.cpp)
 
+#TODO: ask prof about cpu capabilities avx..
 
 
 # with flags
