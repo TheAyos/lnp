@@ -36,7 +36,7 @@ namespace Knight {
             int from = get_lsb_index(bb);
 
             // not capturing own pieces
-            attacks = board.knight_attacks[from] & ~board.occupancies[turn];
+            attacks = board.knightAttacks[from] & ~board.occupancies[turn];
 
             while (attacks) {
                 int to = get_lsb_index(attacks);

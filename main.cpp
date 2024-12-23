@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Board.h"
+#include "Definitions.h"
 
 #define TESTING false
 
@@ -51,9 +52,23 @@ int main(int argc, char **argv) {
     // parser.parseHistory(board);
     // std::cout << board.get_all_legal_moves() << std::endl;
 
-    Board fen_test_board = Board(FEN_POS_3);
-    std::cout << fen_test_board << std::endl;
-    std::cout << fen_test_board.get_all_legal_moves() << std::endl;
+    std::vector<std::pair<std::string, int>> FENs = {
+        {FEN_POS_STARTING, 20}, 
+        {FEN_POS_2, 48}, 
+        {FEN_POS_3, 14}, 
+        {FEN_POS_4, 6}
+    };
+    for (const auto &FEN : FENs) {
+        Board board = Board(FEN.first);
+        std::cout << board << board.get_all_legal_moves();
+        std::cout << "Expected: " << FEN.second << std::endl;
+    }
+
+    // Board fen_test_board = Board(FEN_POS_2);
+    // std::cout << fen_test_board << std::endl;
+    // std::cout << fen_test_board.get_all_legal_moves() << std::endl;
+
+    // fen_test_board.print_attacked(1-fen_test_board.turn);
 
     // std::cout << Board(FEN_POS_STARTING).get_all_legal_moves() << 20 << std::endl;
     // std::cout << Board(FEN_POS_2).get_all_legal_moves() << 48 << std::endl;

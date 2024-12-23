@@ -35,18 +35,84 @@ namespace King {
             int from = get_lsb_index(bb);
 
             // not capturing own pieces
-            attacks = board.king_attacks[from] & ~board.occupancies[turn];
+            attacks = board.kingAttacks[from] & ~board.occupancies[turn];
 
             while (attacks) {
                 int to = get_lsb_index(attacks);
-                
+
                 bool isCapture = get_bit(board.occupancies[1 - turn], to);
+                // FIXME: don't add if move puts king in check here ?
                 moves.push_back(BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+                // add only if not attacked by enemy
+                // moves.add_move_if_not_attacked(
+                //     BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false), board);
 
                 clear_bit(attacks, to);
             }
 
             clear_bit(bb, from);
         }
+
+        /* castling rights bit template (takes 4 bits)
+            - 0001 : white kingside
+            - 0010 : white queenside
+            - 0100 : black kingside
+            - 1000 : black queenside
+            ...
+            - 0000 : no castling
+            - 1111 : all castling rights
+        */
+        // enum CastlingRights { WK = 1, WQ = 2, BK = 4, BQ = 8 };
+
+        // https://en.wikipedia.org/wiki/Castling#Rules
+        // Castling is permitted provided all of the following conditions are met:[5]
+        // Neither the king nor the rook has previously moved. (1)
+        // There are no pieces between the king and the rook. (2)
+        // The king is not currently in check. (3)
+        // The king does not pass through or finish on a square that is attacked by an enemy piece. (4)
+
+        // generate castling moves according to current turn
+        int kingPiece = (turn == W) ? KING : king;
+        int kingSideRookSquare = (turn == W) ? g1 : g8;
+        int queenSideRookSquare = (turn == W) ? c1 : c8;
+        int kingSideEmptySquares[] = {(turn == W) ? f1 : f8, (turn == W) ? g1 : g8};
+        int queenSideEmptySquares[] = {(turn == W) ? c1 : c8, (turn == W) ? d1 : d8, (turn == W) ? b1 : b8};
+        int kingSideCastlingRight = (turn == W) ? WK : BK;
+        int queenSideCastlingRight = (turn == W) ? WQ : BQ;
+        int kingInitialSquare = (turn == W) ? e1 : e8;
+
+        // check (1)
+        if (board.castlingRights & kingSideCastlingRight) {
+            // check (2)
+            bool empty = true;
+            for (int square : kingSideEmptySquares) {
+                if (!board.is_empty(square)) {
+                    empty = false;
+                    break;
+                }
+            }
+            if (empty) {
+                // check (3) and (4)
+                if (!board.is_attacked(kingInitialSquare, 1 - turn)
+                    && !board.is_attacked(kingSideEmptySquares[0], 1 - turn))
+                    moves.push_back(
+                        BitMove(kingInitialSquare, kingSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+            }
+        }
+        if (board.castlingRights & queenSideCastlingRight) {
+            bool empty = true;
+            for (int square : queenSideEmptySquares) {
+                if (!board.is_empty(square)) {
+                    empty = false;
+                    break;
+                }
+            }
+            if (empty) {
+                if (!board.is_attacked(kingInitialSquare, 1 - turn)
+                    && !board.is_attacked(queenSideEmptySquares[1], 1 - turn))
+                    moves.push_back(BitMove(
+                        kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+            }
+        }
     }
-};  // namespace Knight
+};  // namespace King

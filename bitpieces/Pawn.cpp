@@ -66,7 +66,7 @@ namespace Pawn {
             }
 
             // keep attacks that land on enemy pieces
-            attacks = board.pawn_attacks[turn][from] & board.occupancies[1 - turn];
+            attacks = board.pawnAttacks[turn][from] & board.occupancies[1 - turn];
             while (attacks) {
                 // for (auto it = BitOps::iterator(attacks); it != BitOps::iterator(); ++it) {
                 // to = *it;
@@ -84,8 +84,8 @@ namespace Pawn {
                 clear_bit(attacks, to);
             }
 
-            if (board.enpassant_square != -1) {
-                U64 enpassant_attacks = board.pawn_attacks[turn][from] & (1ULL << board.enpassant_square);
+            if (board.enpassantSquare != -1) {
+                U64 enpassant_attacks = board.pawnAttacks[turn][from] & (1ULL << board.enpassantSquare);
 
                 if (enpassant_attacks) {
                     int enpassant_to = get_lsb_index(enpassant_attacks);

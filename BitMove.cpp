@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "Board.h"
 
 /* --------------------------------- BitMove -------------------------------- */
 
@@ -68,6 +69,10 @@ std::string BitMove::get_algebraic_notation() {
 /* ------------------------------- BitMoveVec ------------------------------- */
 
 BitMoveVec::BitMoveVec() : std::vector<BitMove>(){};
+
+void BitMoveVec::add_move_if_not_attacked(const BitMove& move, Board & boardObj) {
+        if (!boardObj.is_attacked(move.get_to(), 1-boardObj.turn)) this->push_back(move);
+    };
 
 std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves) {
     if (moves.empty()) {

@@ -37,9 +37,11 @@ class BitMove {
     std::string get_algebraic_notation();
 };
 
+class Board; //FIXME: is there a better way to fix circular header import problems ?
 class BitMoveVec : public std::vector<BitMove> {
    public:
     BitMoveVec();
-
+    
+    void add_move_if_not_attacked(const BitMove& move, Board & boardObj);
     friend std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves);
 };
