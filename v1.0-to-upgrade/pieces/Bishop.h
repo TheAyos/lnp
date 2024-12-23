@@ -1,7 +1,7 @@
 #ifndef BISHOP_H
 #define BISHOP_H
 
-#include "Piece.h"
+#include "bitpieces/Piece.h"
 
 struct Bishop : Piece {
     Bishop(int color, Pos pos);

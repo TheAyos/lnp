@@ -1,19 +1,13 @@
 #include <stdlib.h>
-#include <time.h>
 
-#include <iomanip>
 #include <iostream>
 
-#include "BitBoard.h"
-#include "Parser.h"
-#include "bitpieces/Piece.h"
+#include "Board.h"
 
 #define TESTING false
 
+// TODO: all use same clang-format style
 int main(int argc, char **argv) {
-
-    srand(time(NULL));
-    // TODO: all use same clang-format style
 
 #if TESTING
     {
@@ -38,7 +32,7 @@ int main(int argc, char **argv) {
         std::vector<long> reference = {0, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860};
         std::cout << "\nComparison with Perft Results from chessprogramming.org:" << std::endl;
         std::cout << "Depth\tCalculated\tError\tseconds\tKpos/s" << std::endl;
-        for(int depth = 1; depth <= max_depth; depth++) {
+        for (int depth = 1; depth <= max_depth; depth++) {
             clock_t start = clock();
             int positions = Chess.search(depth, 1);
             clock_t end = clock();
@@ -51,17 +45,20 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    Parser parser{argc, argv};
-    parser.parseArgs();
-    Board board;
-    parser.parseHistory(board);
-    std::cout << board.generate_moves() << std::endl;
+    // Parser parser{argc, argv};
+    // parser.parseArgs();
+    // Board board;
+    // parser.parseHistory(board);
+    // std::cout << board.get_all_legal_moves() << std::endl;
 
-    // Board fen_test_board = Board(FEN_POS_STARTING);
-    // std::cout << fen_test_board << std::endl;
-    // std::cout << fen_test_board.generate_moves() << std::endl;
+    Board fen_test_board = Board(FEN_POS_3);
+    std::cout << fen_test_board << std::endl;
+    std::cout << fen_test_board.get_all_legal_moves() << std::endl;
 
-
+    // std::cout << Board(FEN_POS_STARTING).get_all_legal_moves() << 20 << std::endl;
+    // std::cout << Board(FEN_POS_2).get_all_legal_moves() << 48 << std::endl;
+    // std::cout << Board(FEN_POS_3).get_all_legal_moves() << 14 << std::endl; // king moves legalness
+    // std::cout << Board(FEN_POS_4).get_all_legal_moves() << 6 << std::endl;
 
     // std::cout << "TURN FOR " << (turn ? "black" : "white") << std::endl;
     // std::vector<std::string> moves = Chess.my_board.all_legal_moves(turn);
@@ -82,7 +79,7 @@ int main(int argc, char **argv) {
     // parser.writeNextMove(Chess.my_move);
     // Chess.my_board.display();
 
-    // BitMoveVec moves = board.generate_moves();
+    // BitMoveVec moves = board.get_all_legal_moves();
     // std::cout << moves << std::endl;
 
     return 0;

@@ -2,7 +2,7 @@
 #define MAX_ALPHA_BETA_DEPTH 4
 
 struct Game {
-	Board my_board;
+	OldBoard my_board;
 	int turn;
 	std::string my_move;
 	Game();

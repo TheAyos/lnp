@@ -3,18 +3,18 @@
 #include <iostream>
 #include <string>
 
-Board::Board() {
+OldBoard::OldBoard() {
   init();
 }
 
-Pos Board::str_from(std::string str) {
+Pos OldBoard::str_from(std::string str) {
   return Pos{str[1] - '1', str[0] - 'a'};
 }
-Pos Board::str_to(std::string str) {
+Pos OldBoard::str_to(std::string str) {
   return Pos{str[3] - '1', str[2] - 'a'};
 }
 
-Pos Board::find_king(int color) {
+Pos OldBoard::find_king(int color) {
   Pos k_pos{0, 0};
   //take the position of our king
   for(int i = 0; i < 8; i++)
@@ -25,7 +25,7 @@ Pos Board::find_king(int color) {
   return k_pos;  
 }
 
-void Board::move(std::string move_str, int* board_status) { // makes the move, while updating the board_status from before
+void OldBoard::move(std::string move_str, int* board_status) { // makes the move, while updating the board_status from before
 	// display();
 	// std::cout << move_str << std::endl;
 	Pos from = str_from(move_str);
@@ -72,45 +72,45 @@ void Board::move(std::string move_str, int* board_status) { // makes the move, w
 		board_status[3] = 1; // rook has just moved
 		board_status[4] = 1; // king has just moved
 	}
-	else if (from_piece->type == 0 && to.y != from.y && board[to.x][to.y] == nullptr) { // en passant
-		board[to.x][to.y] = board[from.x][from.y];
-		board[to.x][to.y]->pos.x = to.x;
-		board[to.x][to.y]->pos.y = to.y;
-		board[from.x][from.y] = nullptr;
-		board[from.x][to.y] = nullptr;
-		// update board_status
-		board_status[0] = 0; // not a castling move
-		board_status[1] = 1; // en passant move
-		board_status[2] = 0; // pawn captured necessarily
-		board_status[3] = 0; // no change to rooks
-		board_status[4] = 0; // no change to king
+	// else if (from_piece->type == 0 && to.y != from.y && board[to.x][to.y] == nullptr) { // en passant
+	// 	board[to.x][to.y] = board[from.x][from.y];
+	// 	board[to.x][to.y]->pos.x = to.x;
+	// 	board[to.x][to.y]->pos.y = to.y;
+	// 	board[from.x][from.y] = nullptr;
+	// 	board[from.x][to.y] = nullptr;
+	// 	// update board_status
+	// 	board_status[0] = 0; // not a castling move
+	// 	board_status[1] = 1; // en passant move
+	// 	board_status[2] = 0; // pawn captured necessarily
+	// 	board_status[3] = 0; // no change to rooks
+	// 	board_status[4] = 0; // no change to king
 	}
-	else { // normal move
-		Piece* captured = board[to.x][to.y];
-  		board[to.x][to.y] = board[from.x][from.y];
-  		board[to.x][to.y]->pos.x = to.x;
-  		board[to.x][to.y]->pos.y = to.y;
-  		board[from.x][from.y] = nullptr;
+	// else { // normal move
+	// 	Piece* captured = board[to.x][to.y];
+  	// 	board[to.x][to.y] = board[from.x][from.y];
+  	// 	board[to.x][to.y]->pos.x = to.x;
+  	// 	board[to.x][to.y]->pos.y = to.y;
+  	// 	board[from.x][from.y] = nullptr;
 		
-		if (promotion > -1) {
-			if (promotion == 1) board[to.x][to.y] = new Knight{color, Pos{to.x,to.y}};
-			if (promotion == 2) board[to.x][to.y] = new Bishop{color, Pos{to.x,to.y}};
-			if (promotion == 3) board[to.x][to.y] = new Rook{color, Pos{to.x,to.y}};
-			if (promotion == 4) board[to.x][to.y] = new Queen{color, Pos{to.x, to.y}};
-		}
+	// 	if (promotion > -1) {
+	// 		if (promotion == 1) board[to.x][to.y] = new Knight{color, Pos{to.x,to.y}};
+	// 		if (promotion == 2) board[to.x][to.y] = new Bishop{color, Pos{to.x,to.y}};
+	// 		if (promotion == 3) board[to.x][to.y] = new Rook{color, Pos{to.x,to.y}};
+	// 		if (promotion == 4) board[to.x][to.y] = new Queen{color, Pos{to.x, to.y}};
+	// 	}
 
-		// update board_status
-		board_status[0] = 0; // not castling
-		board_status[1] = 0; // not en passant
-		board_status[2] = (captured == nullptr)?-1:captured->type;
-		if (board[to.x][to.y]->type == 3) {board_status[3] = (board[to.x][to.y]->has_moved)?0:1; board[to.x][to.y]->has_moved=true;} // normal rook move
-		else board_status[3] = 0;
-		if (board[to.x][to.y]->type == 5) {board_status[4] = (board[to.x][to.y]->has_moved)?0:1; board[to.x][to.y]->has_moved=true;} // normal king move
-		else board_status[4] = 0;
-		if (board[to.x][to.y]->type == 0 && abs(to.x-from.x)==2) {
-			// std::cout << move_str << std::endl;
-			// std::cout << to.x << to.y << std::endl; 
-			board[to.x][to.y]->just_moved = true;} // double pawn move
+	// 	// update board_status
+	// 	board_status[0] = 0; // not castling
+	// 	board_status[1] = 0; // not en passant
+	// 	board_status[2] = (captured == nullptr)?-1:captured->type;
+	// 	if (board[to.x][to.y]->type == 3) {board_status[3] = (board[to.x][to.y]->has_moved)?0:1; board[to.x][to.y]->has_moved=true;} // normal rook move
+	// 	else board_status[3] = 0;
+	// 	if (board[to.x][to.y]->type == 5) {board_status[4] = (board[to.x][to.y]->has_moved)?0:1; board[to.x][to.y]->has_moved=true;} // normal king move
+	// 	else board_status[4] = 0;
+	// 	if (board[to.x][to.y]->type == 0 && abs(to.x-from.x)==2) {
+	// 		// std::cout << move_str << std::endl;
+	// 		// std::cout << to.x << to.y << std::endl; 
+	// 		board[to.x][to.y]->just_moved = true;} // double pawn move
 		
 		/*
 		if (captured!=nullptr && captured->type == 0 && captured->just_moved) board_status[6] = 1; // test
@@ -125,7 +125,7 @@ void Board::move(std::string move_str, int* board_status) { // makes the move, w
 
 }
 
-void Board::undo_move(std::string move_str, int* board_status) {
+void OldBoard::undo_move(std::string move_str, int* board_status) {
 	Pos from = str_from(move_str);
 	Pos to = str_to(move_str);
 	Piece* to_piece = board[to.x][to.y];
@@ -184,7 +184,7 @@ void Board::undo_move(std::string move_str, int* board_status) {
 	}
 }
 
-bool Board::in_check(int color) {
+bool OldBoard::in_check(int color) {
   Pos k_pos = find_king(color);
   //for all opponent pieces, check if they can move to our king
   for(int i = 0; i < 8; i++)
@@ -197,7 +197,7 @@ bool Board::in_check(int color) {
 }
 
 
-std::vector<std::string> Board::all_legal_moves(int color) {
+std::vector<std::string> OldBoard::all_legal_moves(int color) {
   if(color != 0 && color != 1) {
     Util::exitError("Unrecognized color: " + std::to_string(color));
   }
@@ -294,101 +294,101 @@ std::vector<std::string> Board::all_legal_moves(int color) {
  * Below are done
  *
  */
-void Board::init() {
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++) {
-      Pos p{i, j};
-      board[i][j] = nullptr;
-    }
+// void OldBoard::init() {
+//   for(int i = 0; i < 8; i++)
+//     for(int j = 0; j < 8; j++) {
+//       Pos p{i, j};
+//       board[i][j] = nullptr;
+//     }
 
-  // init kings
-  Pos wkp{0, 4};
-  Pos bkp{7, 4};
-  board[0][4] = new King{1, wkp};
-  board[7][4] = new King{0, bkp};
+//   // init kings
+//   Pos wkp{0, 4};
+//   Pos bkp{7, 4};
+//   board[0][4] = new King{1, wkp};
+//   board[7][4] = new King{0, bkp};
 
-  // init pawns
-  for(int j = 0; j < 8; j++) {
-    Pos wpp{1, j};
-    Pos bpp{6, j};
-    board[1][j] = new Pawn{1, wpp};
-    board[6][j] = new Pawn{0, bpp};
-  }
+//   // init pawns
+//   for(int j = 0; j < 8; j++) {
+//     Pos wpp{1, j};
+//     Pos bpp{6, j};
+//     board[1][j] = new Pawn{1, wpp};
+//     board[6][j] = new Pawn{0, bpp};
+//   }
 
-  // init knights
-  Pos wnp1{0, 1};
-  Pos wnp2{0, 6};
-  Pos bnp1{7, 1};
-  Pos bnp2{7, 6};
-  board[0][1] = new Knight{1, wnp1};
-  board[0][6] = new Knight{1, wnp2};
-  board[7][1] = new Knight{0, bnp1};
-  board[7][6] = new Knight{0, bnp2};
+//   // init knights
+//   Pos wnp1{0, 1};
+//   Pos wnp2{0, 6};
+//   Pos bnp1{7, 1};
+//   Pos bnp2{7, 6};
+//   board[0][1] = new Knight{1, wnp1};
+//   board[0][6] = new Knight{1, wnp2};
+//   board[7][1] = new Knight{0, bnp1};
+//   board[7][6] = new Knight{0, bnp2};
 
-  // init bishops
-  Pos wbp1{0, 2};
-  Pos wbp2{0, 5};
-  Pos bbp1{7, 2};
-  Pos bbp2{7, 5};
-  board[0][2] = new Bishop{1, wbp1};
-  board[0][5] = new Bishop{1, wbp2};
-  board[7][2] = new Bishop{0, bbp1};
-  board[7][5] = new Bishop{0, bbp2};
+//   // init bishops
+//   Pos wbp1{0, 2};
+//   Pos wbp2{0, 5};
+//   Pos bbp1{7, 2};
+//   Pos bbp2{7, 5};
+//   board[0][2] = new Bishop{1, wbp1};
+//   board[0][5] = new Bishop{1, wbp2};
+//   board[7][2] = new Bishop{0, bbp1};
+//   board[7][5] = new Bishop{0, bbp2};
 
-  // init rooks
-  Pos wrp1{0, 0};
-  Pos wrp2{0, 7};
-  Pos brp1{7, 0};
-  Pos brp2{7, 7};
-  board[0][0] = new Rook{1, wrp1};
-  board[0][7] = new Rook{1, wrp2};
-  board[7][0] = new Rook{0, brp1};
-  board[7][7] = new Rook{0, brp2};
+//   // init rooks
+//   Pos wrp1{0, 0};
+//   Pos wrp2{0, 7};
+//   Pos brp1{7, 0};
+//   Pos brp2{7, 7};
+//   board[0][0] = new Rook{1, wrp1};
+//   board[0][7] = new Rook{1, wrp2};
+//   board[7][0] = new Rook{0, brp1};
+//   board[7][7] = new Rook{0, brp2};
 
-  // init queens
-  Pos wqp{0, 3};
-  Pos bqp{7, 3};
-  board[0][3] = new Queen{1, wqp};
-  board[7][3] = new Queen{0, bqp};
-}
+//   // init queens
+//   Pos wqp{0, 3};
+//   Pos bqp{7, 3};
+//   board[0][3] = new Queen{1, wqp};
+//   board[7][3] = new Queen{0, bqp};
+// }
 
-void Board::display() {
-  std::string line = "  ";
-  for(int i = 0; i < 8; i++)
-    line += " ----";
-  line += "\n";
+// void OldBoard::display() {
+//   std::string line = "  ";
+//   for(int i = 0; i < 8; i++)
+//     line += " ----";
+//   line += "\n";
 
-  std::string out = line;
-  for(int i = 7; i >= 0; i--) {
-    char row = ('1' + i);
-    std::string row1{row};
-    out += row1 + " ";
-    for(int j = 0; j < 8; j++) {
-      out += "| ";
-      Piece *p = board[i][j];
-      if(p == nullptr)
-        out += "   ";
-      else {
-        if(p->color == 0)
-          out += "b";
-        else
-          out += "w";
-        if(p->type == 0)
-          out += "P ";
-        if(p->type == 1)
-          out += "N ";
-        if(p->type == 2)
-          out += "B ";
-        if(p->type == 3)
-          out += "R ";
-        if(p->type == 4)
-          out += "Q ";
-        if(p->type == 5)
-          out += "K ";
-      }
-    }
-    out += "|\n" + line;
-  }
-  out += "    a    b    c    d    e    f    g    h";
-  std::cout << out << std::endl;
-}
+//   std::string out = line;
+//   for(int i = 7; i >= 0; i--) {
+//     char row = ('1' + i);
+//     std::string row1{row};
+//     out += row1 + " ";
+//     for(int j = 0; j < 8; j++) {
+//       out += "| ";
+//       Piece *p = board[i][j];
+//       if(p == nullptr)
+//         out += "   ";
+//       else {
+//         if(p->color == 0)
+//           out += "b";
+//         else
+//           out += "w";
+//         if(p->type == 0)
+//           out += "P ";
+//         if(p->type == 1)
+//           out += "N ";
+//         if(p->type == 2)
+//           out += "B ";
+//         if(p->type == 3)
+//           out += "R ";
+//         if(p->type == 4)
+//           out += "Q ";
+//         if(p->type == 5)
+//           out += "K ";
+//       }
+//     }
+//     out += "|\n" + line;
+//   }
+//   out += "    a    b    c    d    e    f    g    h";
+//   std::cout << out << std::endl;
+// }

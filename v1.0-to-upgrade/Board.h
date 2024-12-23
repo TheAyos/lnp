@@ -1,12 +1,12 @@
 #pragma once
 #include "pieces/King.h"
-#include "pieces/Pawn.h"
+#include "pieces/bitpieces/Pawn.h"
 #include "pieces/Knight.h"
 #include "pieces/Bishop.h"
 #include "pieces/Rook.h"
 #include "pieces/Queen.h"
 
-struct Board {
+struct OldBoard {
   Piece* board[8][8];
   //read the origin's position of a move
   Pos str_from(std::string);
@@ -14,7 +14,7 @@ struct Board {
   Pos str_to(std::string); 
   Pos find_king(int color);
 
-  Board();
+  OldBoard();
  
  //returns a list of all legal moves 
   std::vector<std::string> all_legal_moves(int color);

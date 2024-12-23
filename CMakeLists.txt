@@ -10,22 +10,26 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pg") # for profiling
 
 #add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
-#            pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
-#            pieces/Pawn.h pieces/Pawn.cpp
+#            pieces/King.h pieces/King.cpp pieces/bitpieces/Piece.h pieces/Piece.cpp
+#            pieces/bitpieces/Pawn.h pieces/Pawn.cpp
 #            pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
 #            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
 
-add_library(headers Parser.h Util.h
-            bitpieces/Piece.h bitpieces/Pawn.h
-            BitBoard.h BitMove.h BitOps.h)
+include_directories(.)
+
+add_library(headers Util.h
+            Parser.h Parser.cpp
+            Definitions.h Definitions.cpp
+            Board.h Board.cpp BitMove.h BitMove.cpp BitOps.h BitOps.cpp BitIterator.h BitIterator.cpp
+            bitpieces/Pawn.h bitpieces/Pawn.cpp bitpieces/Knight.h bitpieces/Knight.cpp
+            bitpieces/Queen.h bitpieces/Queen.cpp bitpieces/King.h bitpieces/King.cpp
+            bitpieces/Bishop.h bitpieces/Bishop.cpp bitpieces/Rook.h bitpieces/Rook.cpp)
 # the next line allows us to not use .cpp files all the time
-set_target_properties(headers PROPERTIES LINKER_LANGUAGE CXX)
+# set_target_properties(headers PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable(logic-and-proofs main.cpp)
 target_link_libraries(logic-and-proofs PRIVATE headers)
-
-include_directories(.)
-add_executable(precalc precalc.cpp)
+# add_executable(precalc precalc.cpp)
 
 #TODO: ask prof about cpu capabilities avx..
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "Piece.h"
+#include "bitpieces/Piece.h"
 
 struct Knight : Piece {
 	Knight(int color, Pos pos);

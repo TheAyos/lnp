@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Piece.h"
+#include "bitpieces/Piece.h"
 
 struct Rook : Piece {
     Rook(int color, Pos pos);

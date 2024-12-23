@@ -1,7 +1,7 @@
 #ifndef QUEEN_H
 #define QUEEN_H
 
-#include "Piece.h"
+#include "bitpieces/Piece.h"
 
 struct Queen : Piece {
     Queen(int color, Pos pos);
