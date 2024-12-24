@@ -228,7 +228,7 @@ double Game::evaluate_piece(Piece* piece) {
 			p_evaluation += king_table[x][y];
 			break;
     }
-	return (piece->color)?p_evaluation: -p_evaluation;
+	return (piece->color) ? p_evaluation: -p_evaluation;
 }
 
 // perft searcher
