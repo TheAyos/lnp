@@ -212,9 +212,14 @@ double Game::evaluate_piece(Piece* piece) {
         case 0: 
             p_evaluation += pawn_table[x][y];
             break;
+        case 1:
+            p_evaluation += knight_table[x][y];
+            break;
+        case 2:
+            p_evaluation += bishop_table[x][y];
+            break;
     }
 
-	if (type == 1 || type == 2) p_evaluation += 30;
 	if (type == 3) p_evaluation += 50;
 	if (type == 4) p_evaluation += 90;
 	if (type == 5) p_evaluation += 900;
