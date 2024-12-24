@@ -218,11 +218,16 @@ double Game::evaluate_piece(Piece* piece) {
         case 2:
             p_evaluation += bishop_table[x][y];
             break;
+        case 3:
+			p_evaluation += rook_table[x][y];
+			break;
+		case 4:
+			p_evaluation += queen_table[x][y];
+			break;
+		case 5:
+			p_evaluation += king_table[x][y];
+			break;
     }
-
-	if (type == 3) p_evaluation += 50;
-	if (type == 4) p_evaluation += 90;
-	if (type == 5) p_evaluation += 900;
 	return (piece->color)?p_evaluation: -p_evaluation;
 }
 
