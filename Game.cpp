@@ -208,12 +208,17 @@ double Game::evaluate_piece(Piece* piece) {
 		{ -50, -30, -30, -30, -30, -30, -30, -50 }
 	};
 
-	if (type == 0) p_evaluation += 10;
+	switch (type) {
+        case 0: 
+            p_evaluation += pawn_table[x][y];
+            break;
+    }
+
 	if (type == 1 || type == 2) p_evaluation += 30;
 	if (type == 3) p_evaluation += 50;
 	if (type == 4) p_evaluation += 90;
 	if (type == 5) p_evaluation += 900;
-	return (piece->color)?p_evaluation: 0-p_evaluation;
+	return (piece->color)?p_evaluation: -p_evaluation;
 }
 
 // perft searcher
