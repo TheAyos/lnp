@@ -4,6 +4,7 @@
 
 #include "Definitions.h"
 
+// OPTI: crucial: inline ? static ?
 U64 BitOps::get_bit(const U64& bitboard, int square) {
     return (bitboard >> square) & 1ULL;
 }

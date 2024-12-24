@@ -26,7 +26,7 @@ class BitMove {
     int get_to() const;
 
     int get_piece() const;
-    int get_promoted() const;
+    int get_promotion_piece() const;
 
     int get_capture() const;
     int get_doublepush() const;
@@ -42,6 +42,5 @@ class BitMoveVec : public std::vector<BitMove> {
    public:
     BitMoveVec();
     
-    void add_move_if_not_attacked(const BitMove& move, Board & boardObj);
     friend std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves);
 };

@@ -25,53 +25,53 @@ Pos OldBoard::find_king(int color) {
   return k_pos;  
 }
 
-void OldBoard::move(std::string move_str, int* board_status) { // makes the move, while updating the board_status from before
-	// display();
-	// std::cout << move_str << std::endl;
-	Pos from = str_from(move_str);
-	Pos to = str_to(move_str);
-	Piece* from_piece = board[from.x][from.y]; // let's assume this is not nullptr
-	Piece* to_piece = board[to.x][to.y];
-	int color = from_piece->color;
-	int promotion = -1;
-	if (move_str.length() == 5) {
-		if (move_str[4] == 'k') promotion = 1;
-		if (move_str[4] == 'b') promotion = 2;
-		if (move_str[4] == 'r') promotion = 3;
-		if (move_str[4] == 'q') promotion = 4;
-	}
-	board_status[6] = promotion;
+// void OldBoard::move(std::string move_str, int* board_status) { // makes the move, while updating the board_status from before
+// 	// display();
+// 	// std::cout << move_str << std::endl;
+// 	Pos from = str_from(move_str);
+// 	Pos to = str_to(move_str);
+// 	Piece* from_piece = board[from.x][from.y]; // let's assume this is not nullptr
+// 	Piece* to_piece = board[to.x][to.y];
+// 	int color = from_piece->color;
+// 	int promotion = -1;
+// 	if (move_str.length() == 5) {
+// 		if (move_str[4] == 'k') promotion = 1;
+// 		if (move_str[4] == 'b') promotion = 2;
+// 		if (move_str[4] == 'r') promotion = 3;
+// 		if (move_str[4] == 'q') promotion = 4;
+// 	}
+// 	board_status[6] = promotion;
 	
-	board_status[5] = -1;
-	int p_line = (color)?4:3;
-	for (int j = 0; j < 8; j++) {
-		Piece* pawn = board[p_line][j];
-		if (pawn!=nullptr && pawn->type == 0 && pawn->color != color && pawn->just_moved) {
-			board_status[5] = j; // the pawn that has just moved
-			// my_pawn->just_moved = false; // now we will move something
-		}
-	} // otherwise no pawn has just moved (board_status[5] stays as -1)	
+// 	board_status[5] = -1;
+// 	int p_line = (color)?4:3;
+// 	for (int j = 0; j < 8; j++) {
+// 		Piece* pawn = board[p_line][j];
+// 		if (pawn!=nullptr && pawn->type == 0 && pawn->color != color && pawn->just_moved) {
+// 			board_status[5] = j; // the pawn that has just moved
+// 			// my_pawn->just_moved = false; // now we will move something
+// 		}
+// 	} // otherwise no pawn has just moved (board_status[5] stays as -1)	
 
-	if (from_piece->type == 5 && abs(from.y-to.y)==2) { // castle
-		from_piece->has_moved = true;
-		from_piece->pos.x = to.x;
-		from_piece->pos.y = to.y;
-		board[to.x][to.y] = from_piece;
-		board[from.x][from.y] = nullptr;
-		int rook_from_y = (to.y==2)?0:7;
-		int rook_to_y = (to.y==2)?3:5;
-		board[from.x][rook_from_y]->has_moved = true;
-		board[from.x][rook_to_y] = board[from.x][rook_from_y];
-		board[from.x][rook_to_y]->pos.x = from.x;
-		board[from.x][rook_to_y]->pos.y = rook_to_y;
-		board[from.x][rook_from_y] = nullptr;
-		// update board_status
-		board_status[0] = 1; // castling move
-		board_status[1] = 0; // not an en passant
-		board_status[2] = -1; // no captured piece
-		board_status[3] = 1; // rook has just moved
-		board_status[4] = 1; // king has just moved
-	}
+// 	if (from_piece->type == 5 && abs(from.y-to.y)==2) { // castle
+// 		from_piece->has_moved = true;
+// 		from_piece->pos.x = to.x;
+// 		from_piece->pos.y = to.y;
+// 		board[to.x][to.y] = from_piece;
+// 		board[from.x][from.y] = nullptr;
+// 		int rook_from_y = (to.y==2)?0:7;
+// 		int rook_to_y = (to.y==2)?3:5;
+// 		board[from.x][rook_from_y]->has_moved = true;
+// 		board[from.x][rook_to_y] = board[from.x][rook_from_y];
+// 		board[from.x][rook_to_y]->pos.x = from.x;
+// 		board[from.x][rook_to_y]->pos.y = rook_to_y;
+// 		board[from.x][rook_from_y] = nullptr;
+// 		// update board_status
+// 		board_status[0] = 1; // castling move
+// 		board_status[1] = 0; // not an en passant
+// 		board_status[2] = -1; // no captured piece
+// 		board_status[3] = 1; // rook has just moved
+// 		board_status[4] = 1; // king has just moved
+// 	}
 	// else if (from_piece->type == 0 && to.y != from.y && board[to.x][to.y] == nullptr) { // en passant
 	// 	board[to.x][to.y] = board[from.x][from.y];
 	// 	board[to.x][to.y]->pos.x = to.x;
@@ -115,180 +115,180 @@ void OldBoard::move(std::string move_str, int* board_status) { // makes the move
 		/*
 		if (captured!=nullptr && captured->type == 0 && captured->just_moved) board_status[6] = 1; // test
 		else board_status[6] = 0;*/
-	}
+// 	}
 	
-	if (board_status[5] > -1) { // remove just_moved status
-		Piece* pawn = board[p_line][board_status[5]];
-		if (pawn!=nullptr && pawn->type == 0 && pawn->color != color)
-			pawn->just_moved = false;
-	}
+// 	if (board_status[5] > -1) { // remove just_moved status
+// 		Piece* pawn = board[p_line][board_status[5]];
+// 		if (pawn!=nullptr && pawn->type == 0 && pawn->color != color)
+// 			pawn->just_moved = false;
+// 	}
 
-}
+// }
 
-void OldBoard::undo_move(std::string move_str, int* board_status) {
-	Pos from = str_from(move_str);
-	Pos to = str_to(move_str);
-	Piece* to_piece = board[to.x][to.y];
-	int color = to_piece->color;
+// void OldBoard::undo_move(std::string move_str, int* board_status) {
+// 	Pos from = str_from(move_str);
+// 	Pos to = str_to(move_str);
+// 	Piece* to_piece = board[to.x][to.y];
+// 	int color = to_piece->color;
 	
-	// undo a double pawn move essentially
-	if (to_piece != nullptr && to_piece->type == 0 && to_piece->just_moved) to_piece->just_moved = false;
+// 	// undo a double pawn move essentially
+// 	if (to_piece != nullptr && to_piece->type == 0 && to_piece->just_moved) to_piece->just_moved = false;
 
-	if (board_status[0] == 1) { // undo castling
-		board[from.x][from.y] = board[to.x][to.y];
-		board[from.x][from.y]->pos.x = from.x;
-		board[from.x][from.y]->pos.y = from.y;
-		board[to.x][to.y] = nullptr;
-		int rook_from_y = (to.y==2) ? 0 : 7;
-		int rook_to_y = (to.y==2) ? 3 : 5;
-		board[from.x][rook_from_y] = board[from.x][rook_to_y];
-		board[from.x][rook_from_y]->pos.x = from.x;
-		board[from.x][rook_from_y]->pos.y = rook_from_y;
-		board[from.x][rook_to_y] = nullptr;
+// 	if (board_status[0] == 1) { // undo castling
+// 		board[from.x][from.y] = board[to.x][to.y];
+// 		board[from.x][from.y]->pos.x = from.x;
+// 		board[from.x][from.y]->pos.y = from.y;
+// 		board[to.x][to.y] = nullptr;
+// 		int rook_from_y = (to.y==2) ? 0 : 7;
+// 		int rook_to_y = (to.y==2) ? 3 : 5;
+// 		board[from.x][rook_from_y] = board[from.x][rook_to_y];
+// 		board[from.x][rook_from_y]->pos.x = from.x;
+// 		board[from.x][rook_from_y]->pos.y = rook_from_y;
+// 		board[from.x][rook_to_y] = nullptr;
 		  
-		board[from.x][from.y]->has_moved = false;
-		board[from.x][rook_from_y]->has_moved = false;			
-	}
-	else if (board_status[1] == 1) { // undo en passant
-		board[from.x][from.y] = board[to.x][to.y];
-  		board[from.x][from.y]->pos.x = from.x;
-  		board[from.x][from.y]->pos.y = from.y;
-  		board[from.x][to.y] = new Pawn{1-color, Pos{from.x,to.y}};
-  		board[to.x][to.y] = nullptr;
-		// board[from.x][to.y]->just_moved = true;	
-	}
-	else {
-  		board[from.x][from.y] = board[to.x][to.y];
-		if (board_status[6] > -1) // undo promotion
-			board[from.x][from.y] = new Pawn{color, Pos{from.x,from.y}}; // restore pawn
-  		board[from.x][from.y]->pos.x = from.x;
-  		board[from.x][from.y]->pos.y = from.y;
+// 		board[from.x][from.y]->has_moved = false;
+// 		board[from.x][rook_from_y]->has_moved = false;			
+// 	}
+// 	else if (board_status[1] == 1) { // undo en passant
+// 		board[from.x][from.y] = board[to.x][to.y];
+//   		board[from.x][from.y]->pos.x = from.x;
+//   		board[from.x][from.y]->pos.y = from.y;
+//   		board[from.x][to.y] = new Pawn{1-color, Pos{from.x,to.y}};
+//   		board[to.x][to.y] = nullptr;
+// 		// board[from.x][to.y]->just_moved = true;	
+// 	}
+// 	else {
+//   		board[from.x][from.y] = board[to.x][to.y];
+// 		if (board_status[6] > -1) // undo promotion
+// 			board[from.x][from.y] = new Pawn{color, Pos{from.x,from.y}}; // restore pawn
+//   		board[from.x][from.y]->pos.x = from.x;
+//   		board[from.x][from.y]->pos.y = from.y;
 		
-		int c = board_status[2]; // restore captured piece
-		if (c == 0) {board[to.x][to.y] = new Pawn{1-color,Pos{to.x,to.y}};}
-		else if (c == 1) board[to.x][to.y] = new Knight{1-color,Pos{to.x,to.y}};
-		else if (c==2) board[to.x][to.y] = new Bishop{1-color,Pos{to.x,to.y}};
-		else if (c==3) board[to.x][to.y] = new Rook{1-color,Pos{to.x,to.y}};
-		else if (c==4) board[to.x][to.y] = new Queen{1-color,Pos{to.x,to.y}};
-		else board[to.x][to.y] = nullptr;
+// 		int c = board_status[2]; // restore captured piece
+// 		if (c == 0) {board[to.x][to.y] = new Pawn{1-color,Pos{to.x,to.y}};}
+// 		else if (c == 1) board[to.x][to.y] = new Knight{1-color,Pos{to.x,to.y}};
+// 		else if (c==2) board[to.x][to.y] = new Bishop{1-color,Pos{to.x,to.y}};
+// 		else if (c==3) board[to.x][to.y] = new Rook{1-color,Pos{to.x,to.y}};
+// 		else if (c==4) board[to.x][to.y] = new Queen{1-color,Pos{to.x,to.y}};
+// 		else board[to.x][to.y] = nullptr;
 		
-		if (board_status[3] == 1) board[from.x][from.y]->has_moved = false; // restore rooks status
-		if (board_status[4] == 1) board[from.x][from.y]->has_moved = false; // restore kings status
-	}
+// 		if (board_status[3] == 1) board[from.x][from.y]->has_moved = false; // restore rooks status
+// 		if (board_status[4] == 1) board[from.x][from.y]->has_moved = false; // restore kings status
+// 	}
 
 
-	if (board_status[5] > -1) { // restore pawn status
-		int color = board[from.x][from.y]->color;
-		int my_p_line = (color)?4:3;
-		board[my_p_line][board_status[5]]->just_moved = true;
-	}
-}
+// 	if (board_status[5] > -1) { // restore pawn status
+// 		int color = board[from.x][from.y]->color;
+// 		int my_p_line = (color)?4:3;
+// 		board[my_p_line][board_status[5]]->just_moved = true;
+// 	}
+// }
 
-bool OldBoard::in_check(int color) {
-  Pos k_pos = find_king(color);
-  //for all opponent pieces, check if they can move to our king
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++)
-      if(board[i][j] != nullptr && board[i][j]->color != color)
-        for(auto &elem : board[i][j]->legal_moves(board))
-          if(elem[2] == k_pos.to_str()[0] && elem[3] == k_pos.to_str()[1])
-            return true;
-  return false;
-}
+// bool OldBoard::in_check(int color) {
+//   Pos k_pos = find_king(color);
+//   //for all opponent pieces, check if they can move to our king
+//   for(int i = 0; i < 8; i++)
+//     for(int j = 0; j < 8; j++)
+//       if(board[i][j] != nullptr && board[i][j]->color != color)
+//         for(auto &elem : board[i][j]->legal_moves(board))
+//           if(elem[2] == k_pos.to_str()[0] && elem[3] == k_pos.to_str()[1])
+//             return true;
+//   return false;
+// }
 
 
-std::vector<std::string> OldBoard::all_legal_moves(int color) {
-  if(color != 0 && color != 1) {
-    Util::exitError("Unrecognized color: " + std::to_string(color));
-  }
-  std::vector<std::string> cache;
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++)
-      //for all positions occupied by the color
-      if(board[i][j] != nullptr && board[i][j]->color == color) {
-        // std::cout << i << " " << j << std::endl;
+// std::vector<std::string> OldBoard::all_legal_moves(int color) {
+//   if(color != 0 && color != 1) {
+//     Util::exitError("Unrecognized color: " + std::to_string(color));
+//   }
+//   std::vector<std::string> cache;
+//   for(int i = 0; i < 8; i++)
+//     for(int j = 0; j < 8; j++)
+//       //for all positions occupied by the color
+//       if(board[i][j] != nullptr && board[i][j]->color == color) {
+//         // std::cout << i << " " << j << std::endl;
 
-        //we can take all (normal) legal moves with the function
-        std::vector<std::string> store = board[i][j]->legal_moves(board);
-        for(auto &str : store) {
-	  int board_status[10];
-	  move(str,board_status);
-          if(!in_check(color))
-            cache.push_back(str);
-          undo_move(str,board_status);
-        }
-      }
+//         //we can take all (normal) legal moves with the function
+//         std::vector<std::string> store = board[i][j]->legal_moves(board);
+//         for(auto &str : store) {
+// 	  int board_status[10];
+// 	  move(str,board_status);
+//           if(!in_check(color))
+//             cache.push_back(str);
+//           undo_move(str,board_status);
+//         }
+//       }
 
-  // check castling:
-  int kx = color ? 0 : 7;
-  int ky = 4;
-  if (board[kx][ky] != nullptr && board[kx][ky]->type == 5 && board[kx][ky]->color == color && !board[kx][ky]->has_moved) {
-	if (board[kx][0] != nullptr && board[kx][0]->type == 3 && board[kx][0]->color == color && !board[kx][0]->has_moved)
-		if ( board[kx][1] == nullptr && board[kx][2] == nullptr && board[kx][3] == nullptr ) {
-			bool can_castle_l = true;
-			int board_status1[6], board_status2[6];
-			std::string move_str1 =Pos{kx,4}.to_str() + Pos{kx,3}.to_str(); 
-			move(move_str1, board_status1);
-			if (in_check(color)) can_castle_l = false;
-			std::string move_str2 = Pos{kx,3}.to_str() + Pos{kx,2}.to_str();
-			move(move_str2, board_status2);
-			if (in_check(color)) can_castle_l = false;
-			undo_move(move_str2, board_status2);
-			undo_move(move_str1, board_status1);
-			if (can_castle_l) cache.push_back(Pos{kx,4}.to_str() + Pos{kx,2}.to_str());
-		}
-	if (board[kx][7] != nullptr && board[kx][7]->type == 3 && board[kx][7]->color == color && !board[kx][7]->has_moved)
-		if ( board[kx][5] == nullptr && board[kx][6] == nullptr ) {
-			bool can_castle_s = true;
-			int board_status1[6], board_status2[6];
-			std::string move_str1 =Pos{kx,4}.to_str()+Pos{kx,5}.to_str();
-			std::string move_str2 = Pos{kx,5}.to_str()+Pos{kx,6}.to_str();
-			move(move_str1, board_status1);
-			if (in_check(color)) can_castle_s = false;
-			move(move_str2, board_status2);
-			if (in_check(color)) can_castle_s = false;
-			undo_move(move_str2, board_status2);
-			undo_move(move_str1, board_status1);
-			if (can_castle_s) cache.push_back(Pos{kx,4}.to_str()+Pos{kx,6}.to_str());
-		}
-  }
+//   // check castling:
+//   int kx = color ? 0 : 7;
+//   int ky = 4;
+//   if (board[kx][ky] != nullptr && board[kx][ky]->type == 5 && board[kx][ky]->color == color && !board[kx][ky]->has_moved) {
+// 	if (board[kx][0] != nullptr && board[kx][0]->type == 3 && board[kx][0]->color == color && !board[kx][0]->has_moved)
+// 		if ( board[kx][1] == nullptr && board[kx][2] == nullptr && board[kx][3] == nullptr ) {
+// 			bool can_castle_l = true;
+// 			int board_status1[6], board_status2[6];
+// 			std::string move_str1 =Pos{kx,4}.to_str() + Pos{kx,3}.to_str(); 
+// 			move(move_str1, board_status1);
+// 			if (in_check(color)) can_castle_l = false;
+// 			std::string move_str2 = Pos{kx,3}.to_str() + Pos{kx,2}.to_str();
+// 			move(move_str2, board_status2);
+// 			if (in_check(color)) can_castle_l = false;
+// 			undo_move(move_str2, board_status2);
+// 			undo_move(move_str1, board_status1);
+// 			if (can_castle_l) cache.push_back(Pos{kx,4}.to_str() + Pos{kx,2}.to_str());
+// 		}
+// 	if (board[kx][7] != nullptr && board[kx][7]->type == 3 && board[kx][7]->color == color && !board[kx][7]->has_moved)
+// 		if ( board[kx][5] == nullptr && board[kx][6] == nullptr ) {
+// 			bool can_castle_s = true;
+// 			int board_status1[6], board_status2[6];
+// 			std::string move_str1 =Pos{kx,4}.to_str()+Pos{kx,5}.to_str();
+// 			std::string move_str2 = Pos{kx,5}.to_str()+Pos{kx,6}.to_str();
+// 			move(move_str1, board_status1);
+// 			if (in_check(color)) can_castle_s = false;
+// 			move(move_str2, board_status2);
+// 			if (in_check(color)) can_castle_s = false;
+// 			undo_move(move_str2, board_status2);
+// 			undo_move(move_str1, board_status1);
+// 			if (can_castle_s) cache.push_back(Pos{kx,4}.to_str()+Pos{kx,6}.to_str());
+// 		}
+//   }
   
-  // check en passant:
-  int px = color ? 4 : 3; 
-  for ( int j = 0; j < 8; j++ )
-	if ( board[px][j] != nullptr && board[px][j]->type == 0 && board[px][j]->color == color ) {
-		if (j-1 >= 0 && board[px][j-1] != nullptr && board[px][j-1]->type == 0 && board[px][j-1]->just_moved && board[(color?px+1:px-1)][j-1]==nullptr) {
-			int board_status[10];
-			std::string move_str =Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j-1}.to_str();  
-		  	move(move_str, board_status);	
-			if (!in_check(color)) {
-				cache.push_back(Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j-1}.to_str());
-				//display();
-				//std::cout << px << " " << j-1 << std::endl;
-			}
-			undo_move(move_str, board_status);
-			/*display();
-			std::cout << "ABOVE IS REVERSED" << std::endl;
-			std::cout << board[px][j-1]->just_moved << std::endl;*/
-		}
-		if (j+1 < 8 && board[px][j+1] != nullptr && board[px][j+1]->type == 0 && board[px][j+1]->just_moved && board[(color?px+1:px-1)][j+1]==nullptr) {
-			int board_status[10];
-			std::string move_str =Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j+1}.to_str();
-		      	move(move_str, board_status);	
-			if (!in_check(color)) {
-				cache.push_back(Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j+1}.to_str());
-				//display();	
-				//std::cout << px << " " << j+1 << std::endl;
-			}
-			undo_move(move_str, board_status);
-			/*display();
-			std::cout << "ABOVE IS REVERSED" << std::endl;
-			std::cout << board[px][j+1]->just_moved << std::endl;*/
-		}
-	}
+//   // check en passant:
+//   int px = color ? 4 : 3; 
+//   for ( int j = 0; j < 8; j++ )
+// 	if ( board[px][j] != nullptr && board[px][j]->type == 0 && board[px][j]->color == color ) {
+// 		if (j-1 >= 0 && board[px][j-1] != nullptr && board[px][j-1]->type == 0 && board[px][j-1]->just_moved && board[(color?px+1:px-1)][j-1]==nullptr) {
+// 			int board_status[10];
+// 			std::string move_str =Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j-1}.to_str();  
+// 		  	move(move_str, board_status);	
+// 			if (!in_check(color)) {
+// 				cache.push_back(Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j-1}.to_str());
+// 				//display();
+// 				//std::cout << px << " " << j-1 << std::endl;
+// 			}
+// 			undo_move(move_str, board_status);
+// 			/*display();
+// 			std::cout << "ABOVE IS REVERSED" << std::endl;
+// 			std::cout << board[px][j-1]->just_moved << std::endl;*/
+// 		}
+// 		if (j+1 < 8 && board[px][j+1] != nullptr && board[px][j+1]->type == 0 && board[px][j+1]->just_moved && board[(color?px+1:px-1)][j+1]==nullptr) {
+// 			int board_status[10];
+// 			std::string move_str =Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j+1}.to_str();
+// 		      	move(move_str, board_status);	
+// 			if (!in_check(color)) {
+// 				cache.push_back(Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j+1}.to_str());
+// 				//display();	
+// 				//std::cout << px << " " << j+1 << std::endl;
+// 			}
+// 			undo_move(move_str, board_status);
+// 			/*display();
+// 			std::cout << "ABOVE IS REVERSED" << std::endl;
+// 			std::cout << board[px][j+1]->just_moved << std::endl;*/
+// 		}
+// 	}
  
-  return cache;
-}
+//   return cache;
+// }
 
 /*
  * Below are done

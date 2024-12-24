@@ -1,5 +1,8 @@
 #include "Definitions.h"
 
+#include <iostream>
+#include <string>
+
 // clang-format off
 
 int char_to_pieces(char c) {
@@ -42,3 +45,17 @@ int coord_to_sq(const std::string& coord) {
     };
     return _coord_to_sq.at(coord);
 }
+
+
+
+namespace Util {
+    bool debugMode = true;
+    void exitError(const std::string &message) {
+        std::cerr << "Error: " << message << std::endl;
+        exit(1);
+    }
+
+    void printDebug(const std::string &message) {
+        if (debugMode) std::cout << "[DEBUG] " << message << std::endl;
+    }
+}  // namespace Util

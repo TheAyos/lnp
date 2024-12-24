@@ -17,7 +17,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 include_directories(.)
 
-add_library(headers Util.h
+add_library(headers
             Parser.h Parser.cpp
             Definitions.h Definitions.cpp
             Board.h Board.cpp BitMove.h BitMove.cpp BitOps.h BitOps.cpp BitIterator.h BitIterator.cpp

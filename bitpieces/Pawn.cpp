@@ -1,8 +1,6 @@
 #include "Pawn.h"
 
-#include "../BitMove.h"
 #include "../BitOps.h"
-#include "../Board.h"
 
 using namespace BitOps;
 
@@ -13,15 +11,13 @@ namespace Pawn {
         set_bit(bb, square);  // bit position
 
         if (color == W) {
-            if ((bb >> 7) & not_file_masks[a])
-                attacks |= (bb >> 7);  // capture to the right front & make sure not to wrap around edge of board
-            if ((bb >> 9) & not_file_masks[h])
-                attacks |= (bb >> 9);  // capture to the left front & make sure not to wrap around edge of board
+            // capture to the right front & make sure not to wrap around edge of board
+            if ((bb >> 7) & not_file_masks[a]) attacks |= (bb >> 7);
+            // capture to the left front ...
+            if ((bb >> 9) & not_file_masks[h]) attacks |= (bb >> 9);
         } else {
-            if ((bb << 7) & not_file_masks[h])
-                attacks |= (bb << 7);  // ...
-            if ((bb << 9) & not_file_masks[a])
-                attacks |= (bb << 9);
+            if ((bb << 7) & not_file_masks[h]) attacks |= (bb << 7);  // ...
+            if ((bb << 9) & not_file_masks[a]) attacks |= (bb << 9);
         }
 
         return attacks;
@@ -48,18 +44,17 @@ namespace Pawn {
             if (((turn == W && !(to < a8)) || (turn == B && !(to > h1))) && !get_bit(board.occupancies[WB], to)) {
                 // pawn promotion placement
                 if ((turn == W && from >= a7 && from <= h7) || (turn == B && from >= a2 && from <= h2)) {
-                    moves.push_back(BitMove(
-                        from, to, piece, QUEEN + 6 * turn, false, false, false,
-                        false));  // QUEEN is white, if turn is black (turn = 1), then QUEEN + 6*1 is queen (black)
-                    moves.push_back(BitMove(from, to, piece, ROOK + 6 * turn, false, false, false, false));  //...
-                    moves.push_back(BitMove(from, to, piece, BISHOP + 6 * turn, false, false, false, false));
-                    moves.push_back(BitMove(from, to, piece, KNIGHT + 6 * turn, false, false, false, false));
+                    // QUEEN is white, if turn is black (turn = 1), then QUEEN + 6*1 is queen (black)
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, QUEEN + 6 * turn, false, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, ROOK + 6 * turn, false, false, false, false));  //...
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, BISHOP + 6 * turn, false, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, KNIGHT + 6 * turn, false, false, false, false));
                 } else {  // "normal" pawn moves
-                    moves.push_back(BitMove(from, to, piece, NO_PROMOTION, false, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, NO_PROMOTION, false, false, false, false));
                     // double pawn push position and two squares ahead is free
                     if (((turn == W && from >= a2 && from <= h2) || turn == B && from >= a7 && from <= h7)
                         && !get_bit(board.occupancies[WB], turn == W ? to - 8 : to + 8)) {
-                        moves.push_back(
+                        board.add_move_if_legal(moves,  
                             BitMove(from, turn == W ? to - 8 : to + 8, piece, NO_PROMOTION, false, true, false, false));
                     }
                 }
@@ -74,12 +69,12 @@ namespace Pawn {
                 to = get_lsb_index(attacks);
                 // pawn promotion placement and not empty target (i.e. capture)
                 if ((turn == W && from >= a7 && from <= h7) || (turn == B && from >= a2 && from <= h2)) {
-                    moves.push_back(BitMove(from, to, piece, QUEEN + 6 * turn, true, false, false, false));
-                    moves.push_back(BitMove(from, to, piece, ROOK + 6 * turn, true, false, false, false));
-                    moves.push_back(BitMove(from, to, piece, BISHOP + 6 * turn, true, false, false, false));
-                    moves.push_back(BitMove(from, to, piece, KNIGHT + 6 * turn, true, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, QUEEN + 6 * turn, true, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, ROOK + 6 * turn, true, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, BISHOP + 6 * turn, true, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, KNIGHT + 6 * turn, true, false, false, false));
                 } else {
-                    moves.push_back(BitMove(from, to, piece, NO_PROMOTION, true, false, false, false));
+                    board.add_move_if_legal(moves,  BitMove(from, to, piece, NO_PROMOTION, true, false, false, false));
                 }
                 clear_bit(attacks, to);
             }
@@ -89,7 +84,7 @@ namespace Pawn {
 
                 if (enpassant_attacks) {
                     int enpassant_to = get_lsb_index(enpassant_attacks);
-                    moves.push_back(BitMove(from, enpassant_to, piece, NO_PROMOTION, true, false, true, false));
+                    board.add_move_if_legal(moves,  BitMove(from, enpassant_to, piece, NO_PROMOTION, true, false, true, false));
                 }
             }
 

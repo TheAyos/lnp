@@ -1,12 +1,10 @@
-#include <stdlib.h>
-
 #include <iostream>
 
 #include "Board.h"
 #include "Definitions.h"
+#include "Parser.h"
 
 #define TESTING false
-
 // TODO: all use same clang-format style
 int main(int argc, char **argv) {
 
@@ -45,24 +43,43 @@ int main(int argc, char **argv) {
         exit(0);
     }
 #endif
+    // TODO: important: fix promotion correct lowercase output even if WHITE color
+    //  TESTING: FEN positions
+     std::vector<std::pair<std::string, int>> FENs
+         = {FEN_POS_STARTING, FEN_POS_2, FEN_POS_3, FEN_POS_4, FEN_POS_4b, FEN_POS_CHECKCHECKCHECK, FEN_POS_5,
+         FEN_POS_6};
+    
+    FENs = {FEN_POS_3, FEN_POS_5};
 
+    for (const auto &FEN : FENs) {
+        Board board = Board(FEN.first);
+        std::cout << "Testing FEN: " << FEN.first << std::endl;
+        if (FEN == FEN_POS_3 || FEN == FEN_POS_5)
+            std::cout << board << board.get_all_legal_moves();
+        else
+            std::cout << board << board.get_all_legal_moves().size() << std::endl;
+        std::cout << "Expected: " << FEN.second << std::endl;
+        // std::cout << sq_to_coord(board.find_king(board.turn)) << std::endl;
+        // std::cout << sq_to_coord(BitOps::get_lsb_index(board.bitboards[board.turn == W ? KING : king])) << std::endl;
+        // std::cout << board.is_attacked(board.find_king(board.turn), 1 - board.turn) << std::endl;
+    }
+
+    // // NORMAL LOGIC : parsing history file
     // Parser parser{argc, argv};
     // parser.parseArgs();
     // Board board;
     // parser.parseHistory(board);
-    // std::cout << board.get_all_legal_moves() << std::endl;
+    // BitMoveVec moves = board.get_all_legal_moves();
 
-    std::vector<std::pair<std::string, int>> FENs = {
-        {FEN_POS_STARTING, 20}, 
-        {FEN_POS_2, 48}, 
-        {FEN_POS_3, 14}, 
-        {FEN_POS_4, 6}
-    };
-    for (const auto &FEN : FENs) {
-        Board board = Board(FEN.first);
-        std::cout << board << board.get_all_legal_moves();
-        std::cout << "Expected: " << FEN.second << std::endl;
-    }
+    // std::cout << moves << std::endl;
+
+    // BoardState state (board);
+    // for (auto &move : moves) {
+    //     board.move(move);
+    //     std::cout << board << std::endl;
+    //     state.apply(board);
+    //     getchar();
+    // }
 
     // Board fen_test_board = Board(FEN_POS_2);
     // std::cout << fen_test_board << std::endl;

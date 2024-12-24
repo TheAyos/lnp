@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Board.h"
 
 /* --------------------------------- BitMove -------------------------------- */
 
@@ -27,7 +26,7 @@ int BitMove::get_to() const {
 int BitMove::get_piece() const {
     return (m_bit >> 12) & 0b1111;
 };
-int BitMove::get_promoted() const {
+int BitMove::get_promotion_piece() const {
     return (m_bit >> 16) & 0b1111;
 };
 
@@ -53,15 +52,15 @@ char get_promoted_letter(int promoted) {
 void BitMove::print() {
     std::cout << letter_pieces[get_piece()] << ":" << sq_to_coord(get_from()) << "->" << sq_to_coord(get_to())
               << ", capflag: " << get_capture() << ", "
-              << ", promoted: " << get_promoted_letter(get_promoted()) << ", "
+              << ", promoted: " << get_promoted_letter(get_promotion_piece()) << ", "
               << "doublepush: " << get_doublepush() << ", "
               << "enpassant: " << get_enpassant() << ", "
               << "castling: " << get_castling() << std::endl;
 }
 
 std::string BitMove::get_algebraic_notation() {
-    if (get_promoted())
-        return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to()) + get_promoted_letter(get_promoted());
+    if (get_promotion_piece())
+        return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to()) + get_promoted_letter(get_promotion_piece());
     else
         return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to());
 }
@@ -69,10 +68,6 @@ std::string BitMove::get_algebraic_notation() {
 /* ------------------------------- BitMoveVec ------------------------------- */
 
 BitMoveVec::BitMoveVec() : std::vector<BitMove>(){};
-
-void BitMoveVec::add_move_if_not_attacked(const BitMove& move, Board & boardObj) {
-        if (!boardObj.is_attacked(move.get_to(), 1-boardObj.turn)) this->push_back(move);
-    };
 
 std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves) {
     if (moves.empty()) {
@@ -84,7 +79,7 @@ std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves) {
 
     for (const BitMove& move : moves) {
         os << "     " << sq_to_coord(move.get_from()) << sq_to_coord(move.get_to())
-           << (move.get_promoted() ? get_promoted_letter(move.get_promoted()) : ' ') << "   "
+           << (move.get_promotion_piece() ? get_promoted_letter(move.get_promotion_piece()) : ' ') << "   "
            << letter_pieces[move.get_piece()] << "         " << (move.get_capture() ? 1 : 0) << "         "
            << (move.get_doublepush() ? 1 : 0) << "         " << (move.get_enpassant() ? 1 : 0) << "         "
            << (move.get_castling() ? 1 : 0) << "\n";

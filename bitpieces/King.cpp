@@ -1,8 +1,6 @@
 #include "King.h"
 
-#include "../BitMove.h"
 #include "../BitOps.h"
-#include "../Board.h"
 
 using namespace BitOps;
 
@@ -42,10 +40,13 @@ namespace King {
 
                 bool isCapture = get_bit(board.occupancies[1 - turn], to);
                 // FIXME: don't add if move puts king in check here ?
-                moves.push_back(BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+                // moves.push_back(BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
                 // add only if not attacked by enemy
-                // moves.add_move_if_not_attacked(
+                // moves.add_move_if_legal(
                 //     BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false), board);
+
+                board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+
 
                 clear_bit(attacks, to);
             }

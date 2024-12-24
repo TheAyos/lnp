@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include "Definitions.h"
 
-#include "Board.h"
-
+class Board;
 struct Parser {
     int argc;
     char **argv;

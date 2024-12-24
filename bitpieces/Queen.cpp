@@ -1,8 +1,6 @@
 #include "Queen.h"
 
-#include "../BitMove.h"
 #include "../BitOps.h"
-#include "../Board.h"
 #include "Bishop.h"
 #include "Rook.h"
 
@@ -37,7 +35,7 @@ namespace Queen {
                 int to = get_lsb_index(attacks);
 
                 bool isCapture = get_bit(board.occupancies[1 - turn], to);
-                moves.push_back(BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+                board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
 
                 clear_bit(attacks, to);
             }
