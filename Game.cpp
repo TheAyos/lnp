@@ -137,6 +137,8 @@ double Game::evaluate(){
 double Game::evaluate_piece(Piece* piece) {
 	double p_evaluation = 0;
 	int type = piece->type;
+    int x = piece->pos.x;
+    int y = piece->pos.y;
 	if (type == 0) p_evaluation += 10;
 	if (type == 1 || type == 2) p_evaluation += 30;
 	if (type == 3) p_evaluation += 50;
