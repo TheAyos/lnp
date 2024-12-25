@@ -145,21 +145,21 @@ double Game::evaluate_piece(Piece* piece) {
 	return (piece->color)?p_evaluation: 0-p_evaluation;
 }
 
-// perft searcher
-int Game::search(int depth, int t) {
-	std::vector<std::string> cache = my_board.all_legal_moves(t);
-	int out = 0;
+// // perft searcher
+// int Game::search(int depth, int t) {
+// 	std::vector<std::string> cache = my_board.all_legal_moves(t);
+// 	int out = 0;
 
-	if (depth == 1) {
-		// for (auto & str : cache) std::cout << str << std::endl;
-		return cache.size();
-	}
+// 	if (depth == 1) {
+// 		// for (auto & str : cache) std::cout << str << std::endl;
+// 		return cache.size();
+// 	}
 
-	for (auto & str : cache) {
-		int board_status[10];	
-		my_board.move(str, board_status);	
-		out += search(depth-1, 1-t);
-	        my_board.undo_move(str, board_status);	
-	}
-	return out;
-}
+// 	for (auto & str : cache) {
+// 		int board_status[10];	
+// 		my_board.move(str, board_status);	
+// 		out += search(depth-1, 1-t);
+// 	        my_board.undo_move(str, board_status);	
+// 	}
+// 	return out;
+// }

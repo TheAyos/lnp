@@ -87,6 +87,7 @@ const int castlingRightsMasks[64] = {
     13, 15, 15, 15, 12, 15, 15, 14
 };
 
+// TOKEEP:
 // precalculation code :
 // int castlingRightsMasks[64];
 // // init all masks to all bits set

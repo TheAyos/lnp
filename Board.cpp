@@ -136,6 +136,7 @@ void Board::setup_initial_pieces() {
 }
 
 void Board::update_occupancies() {
+    std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
     for (int p = PAWN; p <= KING; p++)
         occupancies[W] |= bitboards[p];
     for (int p = pawn; p <= king; p++)
@@ -260,6 +261,8 @@ BitMove Board::parse_algebraic_move(int from, int to, char promotion_piece) {
     return BitMove(from, to, piece, char_to_pieces(promotion_piece), capture, doublepush, enpassant, castling);
 };
 
+#define DEBUG false
+
 int Board::move(const BitMove &move, bool justCheckCheck) {
     // TODO: handle checks
     // TODO: handle undoing
@@ -269,20 +272,27 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     int from = move.get_from();
     int to = move.get_to();
-    std::cout << "[Board::move] Trying making the move :" << sq_to_coord(from) << sq_to_coord(to) << std::endl;
+    if (DEBUG)
+        std::cout << "[Board::move] Trying making the move :" << sq_to_coord(from) << sq_to_coord(to) << std::endl;
+    if (DEBUG) std::cout << "- *-- -*-moving: " << sq_to_coord(from) << sq_to_coord(to) << "- *-- -*-" << std::endl;
 
-    /* ------------------------------- move piece ------------------------------- */
-
-    move_bit(bitboards[move.get_piece()], from, to);
+    // FIXME: currently reordering capture before moving !!
 
     /* ----------------------------- regular capture ---------------------------- */
 
     // OPTI: minimal: variation of get_piece_on_square with enemy color to avoid iterating over 6 bitboards
     if (move.get_capture()) {
-        std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
+        if (DEBUG) std::cout << "!!!capturing piece: " << letter_pieces[get_piece_on_square(to)] << std::endl;
+        if (DEBUG) std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
         clear_bit(bitboards[get_piece_on_square(to)], to);
-        std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
+        if (DEBUG) std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
     }
+
+    /* ------------------------------- move piece ------------------------------- */
+
+    if (DEBUG) std::cout << "-*---*-BEFORE MOVEBIT HANDLING-*---*-" << *this << std::endl;
+    move_bit(bitboards[move.get_piece()], from, to);
+    if (DEBUG) std::cout << "-*---*-AFTER MOVEBIT HANDLING-*---*-" << *this << std::endl;
 
     /* ------------------------------- en passant ------------------------------- */
 
@@ -337,10 +347,12 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     // std::cout << sq_to_coord(BitOps::get_lsb_index(bitboards[player == W ? KING : king])) << std::endl;
     // std::cout << is_attacked(find_king(player), enemy) << std::endl;
     // std::cout << is_attacked(BitOps::get_lsb_index(bitboards[player == W ? KING : king]), enemy) << std::endl;
+    if (DEBUG) std::cout << *this;
 
     if (is_attacked(find_king(player), enemy)) {
-        std::cout << "[Board::move] INVALID MOVE, KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to)
-                  << std::endl;
+        if (DEBUG)
+            std::cout << "[Board::move] INVALID MOVE, KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to)
+                      << std::endl;
         savedState.reapply(*this);
         return -1;  // illegal
     }
@@ -355,93 +367,25 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 /*                               attack-related                               */
 /* -------------------------------------------------------------------------- */
 
-// bool Board::is_attacked(int sq, int by_color) {
-//     // threatened by leaper pieces
-//     if (pawnAttacks[1 - by_color][sq] & bitboards[get_color_piece(PAWN, by_color)]) return true;
-//     if (knightAttacks[sq] & bitboards[get_color_piece(KNIGHT, by_color)]) return true;
-//     if (kingAttacks[sq] & bitboards[get_color_piece(KING, by_color)]) return true;
-
-//     // threatened by sliding pieces
-//     if (Bishop::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(BISHOP, by_color)])
-//         return true;
-//     if (Rook::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(ROOK, by_color)]) return
-//     true; if (Queen::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(QUEEN, by_color)])
-//         return true;
-
-//     return false;
-// }
-
-bool Board::is_attacked(int square, int by_turn) {
-
+bool Board::is_attacked(int sq, int by_color) {
     // threatened by leaper pieces
-    if (pawnAttacks[1 - by_turn][square] & bitboards[(by_turn == W) ? PAWN : pawn]) return true;
-    if (knightAttacks[square] & bitboards[(by_turn == W) ? KNIGHT : knight]) return true;
-    if (kingAttacks[square] & bitboards[(by_turn == W) ? KING : king]) return true;
+    if (pawnAttacks[1 - by_color][sq] & bitboards[get_color_piece(PAWN, by_color)]) return true;
+    if (knightAttacks[sq] & bitboards[get_color_piece(KNIGHT, by_color)]) return true;
+    if (kingAttacks[sq] & bitboards[get_color_piece(KING, by_color)]) return true;
 
     // threatened by sliding pieces
-    int piece;
-
-    piece = (by_turn == W) ? BISHOP : bishop;
-    if (Bishop::get_attack_masks_blocking(square, occupancies[WB]) & bitboards[piece]) return true;
-
-    piece = (by_turn == W) ? ROOK : rook;
-    if (Rook::get_attack_masks_blocking(square, occupancies[WB]) & bitboards[piece]) return true;
-
-    piece = (by_turn == W) ? QUEEN : queen;
-    if (Queen::get_attack_masks_blocking(square, occupancies[WB]) & bitboards[piece]) return true;
+    if (Bishop::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(BISHOP, by_color)])
+        return true;
+    if (Rook::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(ROOK, by_color)]) return true;
+    if (Queen::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(QUEEN, by_color)])
+        return true;
 
     return false;
 }
 
 void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
-    // if (!is_attacked(m.get_to(), 1 - turn))
-    //     std::cout << "piece " << letter_pieces[get_piece_on_square(m.get_from())] << " is safe in square " <<
-    //     sq_to_coord(m.get_from())
-    //               << std::endl;
-
-    // only skip if has choice (don't skip if this resolves a check)
-    // if (is_attacked(m.get_to(), 1 - turn)) {
-    //     if (m.get_to() == e7) {
-    //         printf("\n");
-    //         for (int rank = 0; rank < 8; rank++) {
-    //             for (int file = 0; file < 8; file++) {
-    //                 if (!file) printf("  %d ", 8 - rank);
-    //                 printf(" %d", is_attacked(BitOps::rf_to_square(rank, file), 1 - turn) ? 1 : 0);
-    //             }
-    //             printf("\n");
-    //         }
-    //         printf("\n     a b c d e f g h\n\n");
-    //     }
-    //     std::cout << "skip illegal(capturing) move: " << sq_to_coord(m.get_from()) << "->" << sq_to_coord(m.get_to())
-    //               << std::endl;
-    //     return;
-    // }
-
-    // can only check for this in make move !!! need to update whole board & restor!!
-    // if (is_attacked(get_lsb_index(bitboards[get_color_piece(KING, turn)]), 1 - turn)) {
-
-    //     printf("\n");
-    //     for (int rank = 0; rank < 8; rank++) {
-    //         for (int file = 0; file < 8; file++) {
-    //             if (!file) printf("  %d ", 8 - rank);
-    //             printf(" %d", is_attacked(BitOps::rf_to_square(rank, file), 1-turn) ? 1 : 0);
-    //         }
-    //         printf("\n");
-    //     }
-    //     printf("\n     a b c d e f g h\n\n");
-
-    //     std::cout << "skip illegal(checking) move: " << sq_to_coord(m.get_from()) << "->" << sq_to_coord(m.get_to())
-    //               << std::endl;
-    //     return;
-    // }
     int moveLeadsToCheck = move(m, true);
     if (!moveLeadsToCheck) moveVec.push_back(m);
-    // if (this->move(m) != -1) moveVec.push_back(m);
-    // else {
-    //     std::cout << "[Board::add_move_if_legal] DROPPING ILLEGAL MOVE, KING IN CHECK :" << sq_to_coord(m.get_from())
-    //     << "->" << sq_to_coord(m.get_to()) << std::endl;
-    // }
-    // std::cout << this;
 };
 
 // TODO: make these pseudolegal moves legal
@@ -455,6 +399,25 @@ BitMoveVec Board::get_all_legal_moves() {
     Queen::add_legal_moves(*this, moves);
     King::add_legal_moves(*this, moves);
 
-    Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
+    if (DEBUG) Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
     return moves;
+}
+
+
+long Board::perft_search(int depth) {
+    
+    long res = 0;
+    if (depth == 0) return 1;
+    BitMoveVec moves = get_all_legal_moves();
+
+    for (const BitMove &mv : moves) {
+        
+        BoardState savedState(*this);
+
+        if (move(mv) == -1) continue;
+        res += perft_search(depth - 1);
+
+        savedState.reapply(*this);
+    }
+    return res;
 }

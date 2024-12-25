@@ -84,7 +84,9 @@ class Board {
 
     // generate all legal moves for the current board configuration, using the bitpieces/* functions
     BitMoveVec get_all_legal_moves();
-};
+
+    long perft_search(int depth);
+    };
 
 // object to store the state of the board, to allow for easy way of undoing moves
 class BoardState {

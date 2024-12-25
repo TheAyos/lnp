@@ -1,68 +1,63 @@
+#include <iomanip>
 #include <iostream>
 
 #include "Board.h"
 #include "Definitions.h"
 #include "Parser.h"
 
-#define TESTING false
+#define TESTING true
 // TODO: all use same clang-format style
+// TODO: investigate perft(7), maybe castling ?
+
 int main(int argc, char **argv) {
 
 #if TESTING
-    {
-        // v<1.0 - at depth 5, only en passant are missing, but more at depth 6 ?
-        // Depth   Calculated      Error   seconds Kpos/s
-        // 1       20              0       2.6e-05 7.7
-        // 2       400             0       0.0003  13
-        // 3       8902            0       0.0065  14
-        // 4       197281          0       0.16    13
-        // 5       4865351         -258    3.9     13
-        // 6       119048441       -11883  1e+02   12
-        // v1.0 - after adding special moves:
-        // Depth   Calculated      Error   seconds Kpos/s
-        // 1       20              0       6.5e-05 3.1
-        // 2       400             0       0.00088 4.6
-        // 3       8902            0       0.018   4.8
-        // 4       197281          0       0.43    4.6
-        // 5       4865609         0       11      4.5
-        // 6       119060324       0       2.8e+02 4.3
-        // TESTING: perft results
-        int max_depth = 7;
-        std::vector<long> reference = {0, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860};
-        std::cout << "\nComparison with Perft Results from chessprogramming.org:" << std::endl;
-        std::cout << "Depth\tCalculated\tError\tseconds\tKpos/s" << std::endl;
-        for (int depth = 1; depth <= max_depth; depth++) {
-            clock_t start = clock();
-            int positions = Chess.search(depth, 1);
-            clock_t end = clock();
-            double time_taken = double(end - start) / CLOCKS_PER_SEC;
-            std::cout << depth << "\t" << positions << "\t\t" << positions - reference[depth] << "\t"
-                      << std::setprecision(2) << time_taken << "\t" << (positions / 10e4 / time_taken) << std::endl;
-        }
-        std::cout << std::endl;
-        exit(0);
-    }
-#endif
     // TODO: important: fix promotion correct lowercase output even if WHITE color
     //  TESTING: FEN positions
-     std::vector<std::pair<std::string, int>> FENs
-         = {FEN_POS_STARTING, FEN_POS_2, FEN_POS_3, FEN_POS_4, FEN_POS_4b, FEN_POS_CHECKCHECKCHECK, FEN_POS_5,
-         FEN_POS_6};
-    
-    FENs = {FEN_POS_3, FEN_POS_5};
+    std::vector<std::pair<std::string, int>> FENs = {
+        FEN_POS_STARTING, FEN_POS_2, FEN_POS_3, FEN_POS_4, FEN_POS_4b, FEN_POS_CHECKCHECKCHECK, FEN_POS_5, FEN_POS_6};
+
+    // FENs = {FEN_POS_5};
 
     for (const auto &FEN : FENs) {
         Board board = Board(FEN.first);
         std::cout << "Testing FEN: " << FEN.first << std::endl;
-        if (FEN == FEN_POS_3 || FEN == FEN_POS_5)
-            std::cout << board << board.get_all_legal_moves();
-        else
-            std::cout << board << board.get_all_legal_moves().size() << std::endl;
+        std::cout << board << board.get_all_legal_moves() << board.get_all_legal_moves().size() << std::endl;
         std::cout << "Expected: " << FEN.second << std::endl;
-        // std::cout << sq_to_coord(board.find_king(board.turn)) << std::endl;
-        // std::cout << sq_to_coord(BitOps::get_lsb_index(board.bitboards[board.turn == W ? KING : king])) << std::endl;
-        // std::cout << board.is_attacked(board.find_king(board.turn), 1 - board.turn) << std::endl;
     }
+
+    Board default_board = Board();
+    int max_depth = 5;
+    std::vector<long long> reference = {0, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860};
+    std::cout << "\n[INITIAL_POS] Comparison with Perft Results from chessprogramming.org:" << std::endl;
+    std::cout << "Depth\tCalculated\tError\tseconds\tKpos/s" << std::endl;
+    for (size_t depth = 1; depth <= max_depth; depth++) {
+        clock_t start = clock();
+        long long positions = default_board.perft_search(depth);
+        clock_t end = clock();
+        double time_taken = double(end - start) / CLOCKS_PER_SEC;
+        std::cout << depth << "\t" << positions << "\t\t" << positions - reference[depth] << "\t" << std::fixed
+                  << std::setprecision(2) << time_taken << "\t" << (positions / 1e3 / time_taken) << std::endl;
+    }
+    std::cout << std::endl;
+
+    default_board = Board(FEN_POS_2.first);
+    max_depth = 6;
+    reference = {0, 48, 2039, 97862, 4085603, 193690690, 8031647685};
+    std::cout << "\n[FEN_POS_2] Comparison with Perft Results from chessprogramming.org:" << std::endl;
+    std::cout << "Depth\tCalculated\tError\tseconds\tKpos/s" << std::endl;
+    for (size_t depth = 1; depth <= max_depth; depth++) {
+        clock_t start = clock();
+        long long positions = default_board.perft_search(depth);
+        clock_t end = clock();
+        double time_taken = double(end - start) / CLOCKS_PER_SEC;
+        std::cout << depth << "\t" << positions << "\t\t" << positions - reference[depth] << "\t" << std::fixed
+                  << std::setprecision(2) << time_taken << "\t" << (positions / 1e3 / time_taken) << std::endl;
+    }
+    std::cout << std::endl;
+
+    exit(0);
+#endif
 
     // // NORMAL LOGIC : parsing history file
     // Parser parser{argc, argv};
