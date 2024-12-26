@@ -1,5 +1,6 @@
 #include "Board.h"
 
+#include <cstring>
 #include <iostream>
 
 #include "BitMove.h"
@@ -136,7 +137,13 @@ void Board::setup_initial_pieces() {
 }
 
 void Board::update_occupancies() {
+    // learned that fill is not the best way to set all bits to 0 for contiguous memory
+    // it is more for containers that do not have contiguous memory, like lists/vectors
+    // with custom allocators
     std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
+    // OPTI: still seems to be the same speed ?
+    // std::memset(occupancies, 0, sizeof(occupancies));
+    
     for (int p = PAWN; p <= KING; p++)
         occupancies[W] |= bitboards[p];
     for (int p = pawn; p <= king; p++)

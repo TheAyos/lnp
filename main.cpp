@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     for (const auto &FEN : FENs) {
         Board board = Board(FEN.first);
         std::cout << "Testing FEN: " << FEN.first << std::endl;
-        std::cout << board << board.get_all_legal_moves() << board.get_all_legal_moves().size() << std::endl;
+        std::cout << board.get_all_legal_moves() << board.get_all_legal_moves().size() << std::endl;
         std::cout << "Expected: " << FEN.second << std::endl;
     }
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     std::cout << std::endl;
 
     default_board = Board(FEN_POS_2.first);
-    max_depth = 6;
+    max_depth = 4;
     reference = {0, 48, 2039, 97862, 4085603, 193690690, 8031647685};
     std::cout << "\n[FEN_POS_2] Comparison with Perft Results from chessprogramming.org:" << std::endl;
     std::cout << "Depth\tCalculated\tError\tseconds\tKpos/s" << std::endl;

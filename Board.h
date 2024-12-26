@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 #include "BitMove.h"
 #include "Definitions.h"
 
@@ -98,20 +99,30 @@ class BoardState {
      int castlingRights;
 
      BoardState(const Board &board) {
-          std::copy(std::begin(board.bitboards), std::end(board.bitboards), std::begin(bitboards));
-          std::copy(std::begin(board.occupancies), std::end(board.occupancies), std::begin(occupancies));
-          
-          turn = board.turn;
-          enpassantSquare = board.enpassantSquare;
-          castlingRights = board.castlingRights;
+        // std::copy(std::begin(board.bitboards), std::end(board.bitboards), std::begin(bitboards));
+        // std::copy(std::begin(board.occupancies), std::end(board.occupancies), std::begin(occupancies));
+        // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially copyable.");
+        // static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
+        // memcpy significantly faster !
+        std::memcpy(bitboards, board.bitboards, sizeof(bitboards));
+        std::memcpy(occupancies, board.occupancies, sizeof(occupancies));
+
+        turn = board.turn;
+        enpassantSquare = board.enpassantSquare;
+        castlingRights = board.castlingRights;
      }
 
      void reapply(Board &board) const {
-          std::copy(std::begin(bitboards), std::end(bitboards), std::begin(board.bitboards));
-          std::copy(std::begin(occupancies), std::end(occupancies), std::begin(board.occupancies));
-
-          board.turn = turn;
-          board.enpassantSquare = enpassantSquare;
-          board.castlingRights = castlingRights;
+        // std::copy(std::begin(bitboards), std::end(bitboards), std::begin(board.bitboards));
+        // std::copy(std::begin(occupancies), std::end(occupancies), std::begin(board.occupancies));
+        // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially copyable.");
+        // static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
+        // memcpy significantly faster !
+        std::memcpy(board.bitboards, bitboards, sizeof(bitboards));
+        std::memcpy(board.occupancies, occupancies, sizeof(occupancies));
+        
+        board.turn = turn;
+        board.enpassantSquare = enpassantSquare;
+        board.castlingRights = castlingRights;
      }
 };
