@@ -6,6 +6,9 @@
 
 /* --------------------------------- BitMove -------------------------------- */
 
+BitMove::BitMove(int bitMove) : m_bit(bitMove) {
+}
+
 BitMove::BitMove(
     int from, int to, int piece, int promotion, bool capture, bool doublepush, bool enpassant, bool castling) {
     m_bit = (from)  // 6 bits each..
@@ -44,8 +47,7 @@ int BitMove::get_castling() const {
 };
 
 char get_promoted_letter(int promoted) {
-    if (promoted == PAWN || promoted == pawn || promoted == KING || promoted == king)
-        return ' ';
+    if (promoted == PAWN || promoted == pawn || promoted == KING || promoted == king) return ' ';
     return letter_pieces[promoted];
 }
 
@@ -58,9 +60,11 @@ void BitMove::print() {
               << "castling: " << get_castling() << std::endl;
 }
 
-std::string BitMove::get_algebraic_notation() {
+// long algebraic notation https://en.wikipedia.org/wiki/Universal_Chess_Interface
+std::string BitMove::get_algebraic_notation() const {
     if (get_promotion_piece())
-        return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to()) + get_promoted_letter(get_promotion_piece());
+        return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to())
+               + static_cast<char>(std::tolower(get_promoted_letter(get_promotion_piece())));
     else
         return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to());
 }

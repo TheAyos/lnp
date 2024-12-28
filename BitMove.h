@@ -3,7 +3,7 @@
 
 #include "Definitions.h"
 
-// FIXME: (would uint32_t be better ? speed ?)
+// OPTI: (would uint32_t be better ? speed ?)
 /*  move template (ULL is 64 bits)
     this encodes relevant move information in a single 64 bit integer
     0000 0000 0000 0000 0000 0000 0011 1111   from square
@@ -20,6 +20,7 @@ class BitMove {
     U64 m_bit = 0ULL;
 
    public:
+    BitMove(int bitMove);
     BitMove(int from, int to, int piece, int promotion, bool capture, bool doublepush, bool enpassant, bool castling);
 
     int get_from() const;
@@ -34,13 +35,17 @@ class BitMove {
     int get_castling() const;
 
     void print();
-    std::string get_algebraic_notation();
+    std::string get_algebraic_notation() const;
+
+    U64 get_bit_repr() const {
+        return m_bit;
+    }
 };
 
-class Board; //FIXME: is there a better way to fix circular header import problems ?
+class Board;  // FIXME: is there a better way to fix circular header import problems ?
 class BitMoveVec : public std::vector<BitMove> {
    public:
     BitMoveVec();
-    
+
     friend std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves);
 };

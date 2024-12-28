@@ -1,5 +1,6 @@
 #pragma once
 #include <cstring>
+
 #include "BitMove.h"
 #include "Definitions.h"
 
@@ -16,27 +17,28 @@ class Board {
     // colors are W, B, WB (white and black) (defined in Definitions.h)
     U64 occupancies[3];
 
-    // current turn, W or B
-    int turn;
-
     // enpassant square, -1 if no enpassant square
     int enpassantSquare;
 
     // castling rights (there are 4 types of castling), see Definitions.h for the bitmasks, 0 if no castling rights
     int castlingRights;
 
+    // current turn, W or B
+    int turn;
+
     /* ----------------------- constructor & board-related ---------------------- */
 
     // constructors
-    Board(bool initpieces = true);
+    // Board(bool initpieces = true);
     // initialize the board with a FEN string, useful for testing
+    Board();
     Board(const std::string &fen);
 
     // properly clear the board (does not reset to initial position, just empties the board)
     void clear_board();
 
    private:
-    void setup_initial_pieces();
+    // void setup_initial_pieces();
     void update_occupancies();
     void init_attacks();
 
@@ -53,16 +55,14 @@ class Board {
     // check if a square is empty
     bool is_empty(int square);
 
-    // gets the correct piece code, with color adjusted to the given color, based on the piece codes of enum Pieces in Definitions.h
+    // gets the correct piece code, with color adjusted to the given color, based on the piece codes of enum Pieces in
+    // Definitions.h
     int get_color_piece(int piece, int color);
 
     // find the square of the king of given color
     int find_king(int color);
 
     /* ------------------------------ move parsing ------------------------------ */
-
-    // construct valid BitMove object from a move in algebraic notation (e.g. e2e4, e7e8q) from parser input
-    BitMove parse_algebraic_move(int from, int to, char promotion_piece);
 
     // makes a move on the board, handling special moves (captures, promotions, enpassant, castling, etc.) and updating
     // board state properly (turn, occupancies, etc.)
@@ -81,28 +81,30 @@ class Board {
     bool is_attacked(int square, int by_color);
 
     // add a move to a move vector only if it is legal (i.e. does not lead to piece capture nor king in check)
-    void add_move_if_legal(BitMoveVec& moveVec, const BitMove& m);
+    void add_move_if_legal(BitMoveVec &moveVec, const BitMove &m);
 
     // generate all legal moves for the current board configuration, using the bitpieces/* functions
     BitMoveVec get_all_legal_moves();
 
+    // for debugging purposes, output to be compared with stockfish
+    void perftree(int depth);
     long perft_search(int depth);
-    };
+};
 
 // object to store the state of the board, to allow for easy way of undoing moves
 class BoardState {
-    public:
-     U64 bitboards[12];
-     U64 occupancies[3];
-     int turn;
-     int enpassantSquare;
-     int castlingRights;
+   public:
+    U64 bitboards[12];
+    U64 occupancies[3];
+    int turn;
+    int enpassantSquare;
+    int castlingRights;
 
-     BoardState(const Board &board) {
+    BoardState(const Board &board) {
         // std::copy(std::begin(board.bitboards), std::end(board.bitboards), std::begin(bitboards));
         // std::copy(std::begin(board.occupancies), std::end(board.occupancies), std::begin(occupancies));
-        // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially copyable.");
-        // static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
+        // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially
+        // copyable."); static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
         // memcpy significantly faster !
         std::memcpy(bitboards, board.bitboards, sizeof(bitboards));
         std::memcpy(occupancies, board.occupancies, sizeof(occupancies));
@@ -110,19 +112,19 @@ class BoardState {
         turn = board.turn;
         enpassantSquare = board.enpassantSquare;
         castlingRights = board.castlingRights;
-     }
+    }
 
-     void reapply(Board &board) const {
+    void reapply(Board &board) const {
         // std::copy(std::begin(bitboards), std::end(bitboards), std::begin(board.bitboards));
         // std::copy(std::begin(occupancies), std::end(occupancies), std::begin(board.occupancies));
-        // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially copyable.");
-        // static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
+        // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially
+        // copyable."); static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
         // memcpy significantly faster !
         std::memcpy(board.bitboards, bitboards, sizeof(bitboards));
         std::memcpy(board.occupancies, occupancies, sizeof(occupancies));
-        
+
         board.turn = turn;
         board.enpassantSquare = enpassantSquare;
         board.castlingRights = castlingRights;
-     }
+    }
 };

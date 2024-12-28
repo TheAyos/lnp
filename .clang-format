@@ -8,6 +8,7 @@ SpaceBeforeParens: ControlStatements
 BreakBeforeBraces: Attach
 
 AllowShortIfStatementsOnASingleLine: 'true'
+AllowShortCaseLabelsOnASingleLine: 'true'
 
 BasedOnStyle: Google
 AlignEscapedNewlinesLeft: 'true'

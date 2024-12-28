@@ -5,9 +5,13 @@
 #include <string>
 #include <unordered_map>
 
+#include "BitMove.h"
 #include "Board.h"
+#include "Definitions.h"
 
-Parser::Parser(int argc, char **argv) : argc{argc}, argv{argv} {
+#define DEBUG 0
+
+Parser::Parser(Board &b, int ac, char **av) : board{b}, argc{ac}, argv{av} {
 }
 
 void Parser::parseArgs() {
@@ -38,13 +42,13 @@ void Parser::parseArgs() {
     }
 }
 
-void Parser::parseHistory(Board &board) {
+void Parser::parseHistory() {
     std::ifstream inputStream(historyFile);
 
     if (!inputStream || !inputStream.is_open()) Util::exitError("Could not open file `" + historyFile + "`.");
     std::string line;
     while (std::getline(inputStream, line)) {
-        Util::printDebug("[Parser] " + line);
+        if (DEBUG) Util::printDebug("[Parser] " + line);
 
         int fromRow, fromCol, toRow, toCol;
         // some sanity checks
@@ -53,24 +57,65 @@ void Parser::parseHistory(Board &board) {
             Util::exitError("[Parser] Failed sanity checks for line " + line);
 
         std::string from = line.substr(0, 2);
-        std::string to = line.substr(2, 4);
+        std::string to = line.substr(2, 2);
 
         // check that parsing is correct
-        std::cout << "[Parser] " << coord_to_sq(from) << "->" << coord_to_sq(to) << std::endl;
-        std::cout << "[Parser] " << sq_to_coord(coord_to_sq(from)) << "->" << sq_to_coord(coord_to_sq(to)) << std::endl;
-
         int from_square = coord_to_sq(from);
         int to_square = coord_to_sq(to);
         char promotion_piece = (line.length() == 5) ? line[4] : ' ';
 
-        BitMove line_move = board.parse_algebraic_move(from_square, to_square, promotion_piece);
-        board.move(line_move);
+        if (DEBUG) std::cout << "[Parser] " << from_square << "->" << to_square << std::endl;
+        if (DEBUG)
+            std::cout << "[Parser] " << sq_to_coord(from_square) << "->" << sq_to_coord(to_square) << "==>"
+                      << promotion_piece << std::endl;
 
-        // std::cout << board;
+        BitMove line_move = parse_algebraic_move(from_square, to_square, promotion_piece);
+        board.move(line_move, false);
+
+        if (DEBUG) std::cout << "ep::" << board.enpassantSquare << ", prom_piece:" << promotion_piece << std::endl;
+        // if (DEBUG) std::cout << board;
     }
 
+    Util::printDebug(std::string("[Parser] ") + "---------End parsing board state:");
+    std::cout << board;
+    Util::printDebug(std::string("[Parser] ") + "End parsing board state-------------");
     inputStream.close();
 }
+
+// FIXME: BUG: fix this parsing !
+BitMove Parser::parse_algebraic_move(int from, int to, char promotion_piece) {
+    int piece = board.get_piece_on_square(from);
+    bool capture = false;
+    bool doublepush = false;
+    bool enpassant = false;
+    bool castling = false;
+    int prom = NO_PROMOTION;
+
+    if (piece == -1)
+        Util::exitError("[parse_algebraic_move] ERROR, HISTORY INVALID, NOT HANDLED, SHOULD NEVER HAPPEN...PANIC!!");
+
+    if (board.get_piece_on_square(to) != -1) capture = true;
+
+    if (promotion_piece != ' ') {
+        prom = char_to_pieces(promotion_piece);
+    };
+
+    const int deltaSquare = std::abs(to - from);
+
+    if (piece == PAWN || piece == pawn) {
+        // detect pawn doublepush
+        if (deltaSquare == 16) doublepush = true;
+        // detect pawn enpassant opportunity
+        if (to % 8 != from % 8 && board.get_piece_on_square(to) == -1) enpassant = true;
+    }
+
+    if (piece == KING || piece == king)
+        if (deltaSquare == 2) castling = true;
+
+    if (DEBUG)
+        std::cout << "prom_piece: " << promotion_piece << ", prom: " << char_to_pieces(promotion_piece) << std::endl;
+    return BitMove(from, to, piece, prom, capture, doublepush, enpassant, castling);
+};
 
 void Parser::writeNextMove(const std::string &moveString) {
     std::ofstream outputStream(outputFile, std::ios::trunc);

@@ -1,5 +1,6 @@
 #include "Board.h"
 
+#include <chrono>
 #include <cstring>
 #include <iostream>
 
@@ -19,17 +20,11 @@ using namespace BitOps;
 /*                         constructor & board-related                        */
 /* -------------------------------------------------------------------------- */
 
-Board::Board(bool initpieces) {
-    clear_board();
-    init_attacks();
-    if (initpieces) setup_initial_pieces();
-    update_occupancies();
-}
+// starting FEN position
+Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"){};
 
-Board::Board(const std::string &fen) : Board(false) {
-    // initpieces is set to false here since we will set the pieces from the FEN string,
-    //               and then call the main constructor to continue the initizaliations
-
+// TODO: FIXME: OPTI: fixcpcpcpc
+Board::Board(const std::string &fen) {
     // https://www.chessprogramming.org/Forsyth-Edwards_Notation#Samples
     // <FEN> ::=  <Piece Placement>
     //        ' ' <Side to move>
@@ -38,103 +33,88 @@ Board::Board(const std::string &fen) : Board(false) {
     //        ' ' <Halfmove clock>
     //        ' ' <Fullmove counter>
     clear_board();
+    init_attacks();
 
-    int fen_index = 0;
+    // interesting : ++i increments i before using its value, i++ increments i after using its value
+    size_t fen_index = 0;
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
             int square = rf_to_square(rank, file);
 
             // handles occupied squares
             if (fen[fen_index] >= 'A' && fen[fen_index] <= 'Z' || fen[fen_index] >= 'a' && fen[fen_index] <= 'z') {
-                int piece = char_to_pieces(fen[fen_index]);
+                int piece = char_to_pieces(fen[fen_index++]);
                 set_bit(bitboards[piece], square);
-                fen_index++;
             }
 
             // handles number of empty squares
             if (fen[fen_index] >= '0' && fen[fen_index] <= '9') {
-                int offset = (int)(fen[fen_index] - '0');
+                int offset = (fen[fen_index++] - '0');
 
                 // fix well-known FEN parsing mistake
                 if (get_piece_on_square(square) == -1) file--;
 
                 file += offset;
-                fen_index++;
             }
 
             if (fen[fen_index] == '/') fen_index++;
         }
     }
 
-    fen_index++;
-    fen[fen_index] == 'w' ? turn = W : turn = B;
+    fen[++fen_index] == 'w' ? turn = W : turn = B;
 
     fen_index++;
-    fen_index++;
-
-    while (fen[fen_index] != ' ') {
-        // clang-format off
+    while (fen[++fen_index] != ' ') {
         switch (fen[fen_index]) {
             case 'K': castlingRights |= WK; break;
-            case 'Q': castlingRights |= WQ; break;
             case 'k': castlingRights |= BK; break;
+            case 'Q': castlingRights |= WQ; break;
             case 'q': castlingRights |= BQ; break;
             case '-': break;
+            default: Util::exitError("[Board::Board(fen)]INVALID FEN STRING"); break;
         }
-        // clang-format on
-        fen_index++;
     }
-
     fen_index++;
-    if (fen[fen_index] == '-')
-        enpassantSquare = -1;
-    else {
-        enpassantSquare = rf_to_square(fen[0] - 'a', 8 - (fen[1] - '0'));
-    }
+    enpassantSquare = (fen[++fen_index] == '-') ? -1 : rf_to_square(fen[0] - 'a', 8 - (fen[1] - '0'));
 
+    // important to init board !!
     update_occupancies();
 }
 
-void Board::setup_initial_pieces() {
-    set_bit(bitboards[PAWN], g2);
-    set_bit(bitboards[PAWN], h2);
-    set_bit(bitboards[PAWN], f2);
-    set_bit(bitboards[PAWN], e2);
-    set_bit(bitboards[PAWN], d2);
-    set_bit(bitboards[PAWN], a2);
-    set_bit(bitboards[PAWN], b2);
-    set_bit(bitboards[PAWN], c2);
-
-    set_bit(bitboards[pawn], g7);
-    set_bit(bitboards[pawn], h7);
-    set_bit(bitboards[pawn], f7);
-    set_bit(bitboards[pawn], e7);
-    set_bit(bitboards[pawn], d7);
-    set_bit(bitboards[pawn], a7);
-    set_bit(bitboards[pawn], b7);
-    set_bit(bitboards[pawn], c7);
-
-    set_bit(bitboards[KNIGHT], b1);
-    set_bit(bitboards[KNIGHT], g1);
-    set_bit(bitboards[knight], b8);
-    set_bit(bitboards[knight], g8);
-
-    set_bit(bitboards[BISHOP], c1);
-    set_bit(bitboards[BISHOP], f1);
-    set_bit(bitboards[bishop], c8);
-    set_bit(bitboards[bishop], f8);
-
-    set_bit(bitboards[ROOK], a1);
-    set_bit(bitboards[ROOK], h1);
-    set_bit(bitboards[rook], a8);
-    set_bit(bitboards[rook], h8);
-
-    set_bit(bitboards[QUEEN], d1);
-    set_bit(bitboards[KING], e1);
-
-    set_bit(bitboards[queen], d8);
-    set_bit(bitboards[king], e8);
-}
+// void Board::setup_initial_pieces() {
+//     set_bit(bitboards[PAWN], g2);
+//     set_bit(bitboards[PAWN], h2);
+//     set_bit(bitboards[PAWN], f2);
+//     set_bit(bitboards[PAWN], e2);
+//     set_bit(bitboards[PAWN], d2);
+//     set_bit(bitboards[PAWN], a2);
+//     set_bit(bitboards[PAWN], b2);
+//     set_bit(bitboards[PAWN], c2);
+//     set_bit(bitboards[pawn], g7);
+//     set_bit(bitboards[pawn], h7);
+//     set_bit(bitboards[pawn], f7);
+//     set_bit(bitboards[pawn], e7);
+//     set_bit(bitboards[pawn], d7);
+//     set_bit(bitboards[pawn], a7);
+//     set_bit(bitboards[pawn], b7);
+//     set_bit(bitboards[pawn], c7);
+//     set_bit(bitboards[KNIGHT], b1);
+//     set_bit(bitboards[KNIGHT], g1);
+//     set_bit(bitboards[knight], b8);
+//     set_bit(bitboards[knight], g8);
+//     set_bit(bitboards[BISHOP], c1);
+//     set_bit(bitboards[BISHOP], f1);
+//     set_bit(bitboards[bishop], c8);
+//     set_bit(bitboards[bishop], f8);
+//     set_bit(bitboards[ROOK], a1);
+//     set_bit(bitboards[ROOK], h1);
+//     set_bit(bitboards[rook], a8);
+//     set_bit(bitboards[rook], h8);
+//     set_bit(bitboards[QUEEN], d1);
+//     set_bit(bitboards[KING], e1);
+//     set_bit(bitboards[queen], d8);
+//     set_bit(bitboards[king], e8);
+// }
 
 void Board::update_occupancies() {
     // learned that fill is not the best way to set all bits to 0 for contiguous memory
@@ -143,7 +123,7 @@ void Board::update_occupancies() {
     std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
     // OPTI: still seems to be the same speed ?
     // std::memset(occupancies, 0, sizeof(occupancies));
-    
+
     for (int p = PAWN; p <= KING; p++)
         occupancies[W] |= bitboards[p];
     for (int p = pawn; p <= king; p++)
@@ -156,13 +136,13 @@ void Board::init_attacks() {
     for (int square = 0; square < 64; square++) {
         pawnAttacks[W][square] = Pawn::get_attack_mask(W, square);
         pawnAttacks[B][square] = Pawn::get_attack_mask(B, square);
-
         knightAttacks[square] = Knight::get_attack_mask(square);
         kingAttacks[square] = King::get_attack_mask(square);
     }
 }
 
 void Board::clear_board() {
+    // OPTI: can i fill from bitboards to occupancies ? aren't they contiguous in memory ?
     std::fill(std::begin(bitboards), std::end(bitboards), 0ULL);
     std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
     turn = W;
@@ -175,6 +155,7 @@ void Board::clear_board() {
 /* -------------------------------------------------------------------------- */
 
 std::ostream &operator<<(std::ostream &os, const Board &board) {
+    // TODO: ?: add sanity checks for board state variables somewhere?
     const std::string footer = "    a    b    c    d    e    f    g    h";
     const std::string emptySquare = "   ";
 
@@ -243,99 +224,54 @@ int Board::find_king(int color) {
 /*                                move parsing                                */
 /* -------------------------------------------------------------------------- */
 
-BitMove Board::parse_algebraic_move(int from, int to, char promotion_piece) {
-    int piece = get_piece_on_square(from);
-    bool capture = false;
-    bool doublepush = false;
-    bool enpassant = false;
-    bool castling = false;
-
-    if (piece == -1)
-        Util::printDebug(
-            "[parse_algebraic_move] ERROR, HISTORY INVALID, NOT HANDLED, SHOULD NEVER HAPPEN...PANIC!!!!!!!!");
-
-    if (get_piece_on_square(to) != -1) capture = true;
-
-    if (piece == PAWN || piece == pawn) {
-
-        // detect pawn doublepush
-        if (abs(to - from) == 16) doublepush = true;
-
-        // detect pawn enpassant opportunity
-        if (to % 8 != from % 8 && get_piece_on_square(to) == -1) enpassant = true;
-    }
-
-    return BitMove(from, to, piece, char_to_pieces(promotion_piece), capture, doublepush, enpassant, castling);
-};
-
-#define DEBUG false
+#define DEBUG 0
 
 int Board::move(const BitMove &move, bool justCheckCheck) {
-    // TODO: handle checks
-    // TODO: handle undoing
-
+    // OPTI: explore using stacks OR making an unmake_move function for undoing moves
     // save board state for potential undo at end of function
     BoardState savedState(*this);
 
     int from = move.get_from();
     int to = move.get_to();
-    if (DEBUG)
-        std::cout << "[Board::move] Trying making the move :" << sq_to_coord(from) << sq_to_coord(to) << std::endl;
-    if (DEBUG) std::cout << "- *-- -*-moving: " << sq_to_coord(from) << sq_to_coord(to) << "- *-- -*-" << std::endl;
-
-    // FIXME: currently reordering capture before moving !!
+    if (DEBUG) std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to) << std::endl;
 
     /* ----------------------------- regular capture ---------------------------- */
-
     // OPTI: minimal: variation of get_piece_on_square with enemy color to avoid iterating over 6 bitboards
     if (move.get_capture()) {
         if (DEBUG) std::cout << "!!!capturing piece: " << letter_pieces[get_piece_on_square(to)] << std::endl;
-        if (DEBUG) std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
+        // if (DEBUG) std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
         clear_bit(bitboards[get_piece_on_square(to)], to);
-        if (DEBUG) std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
+        // if (DEBUG) std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
     }
 
     /* ------------------------------- move piece ------------------------------- */
-
-    if (DEBUG) std::cout << "-*---*-BEFORE MOVEBIT HANDLING-*---*-" << *this << std::endl;
+    // if (DEBUG) std::cout << "-*---*-BEFORE MOVEBIT HANDLING-*---*-" << *this << std::endl;
     move_bit(bitboards[move.get_piece()], from, to);
-    if (DEBUG) std::cout << "-*---*-AFTER MOVEBIT HANDLING-*---*-" << *this << std::endl;
+    // if (DEBUG) std::cout << "-*---*-AFTER MOVEBIT HANDLING-*---*-" << *this << std::endl;
 
     /* ------------------------------- en passant ------------------------------- */
-
     if (move.get_enpassant()) (turn == W) ? clear_bit(bitboards[pawn], to + 8) : clear_bit(bitboards[PAWN], to - 8);
 
     // a move is made, reset previous enpassant
     enpassantSquare = -1;
 
     /* ---------------------------- double pawn push ---------------------------- */
-
     if (move.get_doublepush()) (turn == W) ? (enpassantSquare = to + 8) : (enpassantSquare = to - 8);
 
     /* ----------------------------- pawn promotion ----------------------------- */
-
     if (move.get_promotion_piece()) {
         clear_bit(bitboards[get_color_piece(PAWN, turn)], to);
-        set_bit(bitboards[move.get_promotion_piece()], to);
+        set_bit(bitboards[get_color_piece(move.get_promotion_piece(), turn)], to);
     }
 
     /* ------------------------------ king castling ----------------------------- */
-
     if (move.get_castling()) {
         // handle castling according to the castling type (in order: WK, WQ, BK, BQ)
         switch (to) {
-            case g1:
-                move_bit(bitboards[ROOK], h1, f1);
-                break;
-            case c1:
-                move_bit(bitboards[ROOK], a1, d1);
-                break;
-            case g8:
-                move_bit(bitboards[rook], h8, f8);
-                break;
-            case c8:
-                move_bit(bitboards[rook], a8, d8);
-                break;
+            case g1: move_bit(bitboards[ROOK], h1, f1); break;
+            case c1: move_bit(bitboards[ROOK], a1, d1); break;
+            case g8: move_bit(bitboards[rook], h8, f8); break;
+            case c8: move_bit(bitboards[rook], a8, d8); break;
         }
     }
 
@@ -349,7 +285,6 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     turn = 1 - turn;
 
     // cHeCkInG cHeCkS
-
     // std::cout << sq_to_coord(find_king(player)) << std::endl;
     // std::cout << sq_to_coord(BitOps::get_lsb_index(bitboards[player == W ? KING : king])) << std::endl;
     // std::cout << is_attacked(find_king(player), enemy) << std::endl;
@@ -395,10 +330,9 @@ void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
     if (!moveLeadsToCheck) moveVec.push_back(m);
 };
 
-// TODO: make these pseudolegal moves legal
 BitMoveVec Board::get_all_legal_moves() {
     BitMoveVec moves;
-    // FIXME: need to dereference the pointer !!!
+
     Pawn::add_legal_moves(*this, moves);
     Knight::add_legal_moves(*this, moves);
     Bishop::add_legal_moves(*this, moves);
@@ -406,19 +340,41 @@ BitMoveVec Board::get_all_legal_moves() {
     Queen::add_legal_moves(*this, moves);
     King::add_legal_moves(*this, moves);
 
-    if (DEBUG) Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
+    // OPTI: crucial: use pre-allocated array instead of vector for performance
+    // Util::printDebug("[Board::FFSIZE]" + std::to_string(moves.size()));
+    // Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
     return moves;
 }
 
+void Board::perftree(int depth) {
+    BitMoveVec moves = get_all_legal_moves();
+    long long totalNodes = 0;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (const BitMove &mv : moves) {
+
+        BoardState savedState(*this);
+        if (move(mv) == -1) continue;
+        long nodes = perft_search(depth - 1);
+        savedState.reapply(*this);
+
+        std::cout << mv.get_algebraic_notation() << " " << nodes << std::endl;
+        totalNodes += nodes;
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    std::cout << std::endl << totalNodes << std::endl;
+}
 
 long Board::perft_search(int depth) {
-    
+
     long res = 0;
     if (depth == 0) return 1;
     BitMoveVec moves = get_all_legal_moves();
 
     for (const BitMove &mv : moves) {
-        
+
         BoardState savedState(*this);
 
         if (move(mv) == -1) continue;

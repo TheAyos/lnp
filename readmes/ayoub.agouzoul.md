@@ -9,6 +9,8 @@
 - Improved performance of the AI by using alpha-beta pruning instead of minimax
 - Suggested using a C++ profiler to target optimization efforts (gprof, std::vector functions use 15% of cpu time, switching to bitboard representation will improve performance)
 ### Week 4:
-- Moved to bitboard
-<!-- helpful resources : -->
-<!-- https://www.geeksforgeeks.org/friend-class-function-cpp/ -->
+- Moved the project to bitboard representation, optimizing movegen speed by around 5-10x
+- Added FEN parsing to test tricky positions
+- Optimized speed of bit operations further
+- Fixed movegen bugs that appeared at depth 7
+- Added a PerftTests testing suite

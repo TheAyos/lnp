@@ -5,6 +5,8 @@
 
 // clang-format off
 
+//TODO: crucial: rewrite these conversion functions efficiently
+
 int char_to_pieces(char c) {
     std::map<char, int> _char_to_pieces
         = {{'P', PAWN}, {'N', KNIGHT}, {'B', BISHOP}, {'R', ROOK}, {'Q', QUEEN}, {'K', KING},

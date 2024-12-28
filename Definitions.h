@@ -114,19 +114,6 @@ const int castlingRightsMasks[64] = {
 //     std::cout << std::endl;
 // }
 
-/* -------------------------------------------------------------------------- */
-/*                              testing, FEN, ...                             */
-/* -------------------------------------------------------------------------- */
-// https://www.chessprogramming.org/Perft_Results
-const std::pair<std::string, int> FEN_POS_STARTING = {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 20};
-const std::pair<std::string, int> FEN_POS_2 = {"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ", 48};
-const std::pair<std::string, int> FEN_POS_3 = {"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ", 14};
-const std::pair<std::string, int> FEN_POS_4 = {"r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1", 6};
-const std::pair<std::string, int> FEN_POS_4b = {"r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1 ", 6};
-const std::pair<std::string, int> FEN_POS_CHECKCHECKCHECK = {"r3k2r/p1pp1pb1/bn2Qnp1/2qPN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQkq - 3 2", 5};
-const std::pair<std::string, int> FEN_POS_5 = {"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  ", 44};
-const std::pair<std::string, int> FEN_POS_6 = {"r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 ", 46};
-
 namespace Util {
     void exitError(const std::string& message);
     void printDebug(const std::string& message);
