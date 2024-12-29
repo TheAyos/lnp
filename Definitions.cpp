@@ -5,8 +5,9 @@
 
 // clang-format off
 
-//TODO: crucial: rewrite these conversion functions efficiently
+//FIXME: crucial: rewrite these conversion functions efficiently
 
+// FIXME: rewrite using the same convention as teacher
 int char_to_pieces(char c) {
     std::map<char, int> _char_to_pieces
         = {{'P', PAWN}, {'N', KNIGHT}, {'B', BISHOP}, {'R', ROOK}, {'Q', QUEEN}, {'K', KING},

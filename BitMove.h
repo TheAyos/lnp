@@ -37,7 +37,7 @@ class BitMove {
     void print();
     std::string get_algebraic_notation() const;
 
-    U64 get_bit_repr() const {
+    inline U64 get_bit_repr() const {
         return m_bit;
     }
 };

@@ -83,7 +83,7 @@ void Parser::parseHistory() {
 }
 
 // FIXME: BUG: fix this parsing !
-BitMove Parser::parse_algebraic_move(int from, int to, char promotion_piece) {
+BitMove Parser::parse_algebraic_move(int from, int to, char promotion_code) {
     int piece = board.get_piece_on_square(from);
     bool capture = false;
     bool doublepush = false;
@@ -96,25 +96,29 @@ BitMove Parser::parse_algebraic_move(int from, int to, char promotion_piece) {
 
     if (board.get_piece_on_square(to) != -1) capture = true;
 
-    if (promotion_piece != ' ') {
-        prom = char_to_pieces(promotion_piece);
+    if (promotion_code != ' ') {
+        prom = char_to_pieces(promotion_code);
     };
 
-    const int deltaSquare = std::abs(to - from);
+    const int deltaSquareAbs = std::abs(to - from);
 
     if (piece == PAWN || piece == pawn) {
         // detect pawn doublepush
-        if (deltaSquare == 16) doublepush = true;
+        if (deltaSquareAbs == 16) doublepush = true;
         // detect pawn enpassant opportunity
         if (to % 8 != from % 8 && board.get_piece_on_square(to) == -1) enpassant = true;
     }
 
     if (piece == KING || piece == king)
-        if (deltaSquare == 2) castling = true;
+        if (deltaSquareAbs == 2) castling = true;
 
-    if (DEBUG)
-        std::cout << "prom_piece: " << promotion_piece << ", prom: " << char_to_pieces(promotion_piece) << std::endl;
-    return BitMove(from, to, piece, prom, capture, doublepush, enpassant, castling);
+    // FIXME: temporary !!!
+    int promotionPiece = ((promotion_code == 'k') ? char_to_pieces('n') : char_to_pieces(promotion_code));
+    if (DEBUG) {
+        std::cout << "got parse promcode : " << promotion_code
+                  << " which corresponds to piece : " << letter_pieces[promotionPiece] << std::endl;
+    }
+    return BitMove(from, to, piece, promotionPiece, capture, doublepush, enpassant, castling);
 };
 
 void Parser::writeNextMove(const std::string &moveString) {

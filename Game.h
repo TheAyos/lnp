@@ -1,20 +1,18 @@
 #pragma once
 #include "BitMove.h"
 #include "Board.h"
-#define MAX_ALPHA_BETA_DEPTH 4
+#define MAX_ALPHA_BETA_DEPTH 5
 
 class Game {
    public:
-    Board &board;
-    BitMove *bestMove;
+    Board& board;
 
-    Game(Board &board);
-    ~Game();
+    Game(Board& board);
 
     /* -------------------------- search and evaluation ------------------------- */
     int evaluate();
     int evaluate_piece(int piece);
-    void search_random();
-    int search_best_alpha_beta(int depth, int prev_eval, int alpha, int beta);
-    int search_negamax_alpha_beta(int depth, int alpha, int beta);
+    void search_random(int& bestMove);
+    int search_best_alpha_beta(int& bestMove, int depth, int prev_eval, int alpha, int beta);
+    // int search_negamax_alpha_beta(BitMove* bestMove, int depth, int alpha, int beta);
 };

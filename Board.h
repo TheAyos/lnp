@@ -106,6 +106,18 @@ class BoardState {
         // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially
         // copyable."); static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
         // memcpy significantly faster !
+        //FIXME: error when compiling without -O
+            // Program received signal SIGSEGV, Segmentation fault.
+            // __memcpy_avx512_unaligned_erms ()
+            //     at ../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:273
+            // 273     ../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S: No such file or directory.
+            // (gdb) bt
+            // #0  __memcpy_avx512_unaligned_erms ()
+            //     at ../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:273
+            // #1  0x00005555555663dd in std::__copy_move<false, true, std::random_access_iterator_tag>::__copy_m<unsigned long long> (__first=0x5fffffffd050, 
+            //     __last=0x5fffffffd0b0, __result=0x7fffffffc930)
+            //     at /usr/include/c++/12/bits/stl_algobase.h:431
+            // #2  0x0000555555566284 in std::__copy_move_a2<false, unsigned long long const*, unsigned long long*> (
         std::memcpy(bitboards, board.bitboards, sizeof(bitboards));
         std::memcpy(occupancies, board.occupancies, sizeof(occupancies));
 
@@ -115,8 +127,8 @@ class BoardState {
     }
 
     void reapply(Board &board) const {
-        // std::copy(std::begin(bitboards), std::end(bitboards), std::begin(board.bitboards));
-        // std::copy(std::begin(occupancies), std::end(occupancies), std::begin(board.occupancies));
+        std::copy(std::begin(bitboards), std::end(bitboards), std::begin(board.bitboards));
+        std::copy(std::begin(occupancies), std::end(occupancies), std::begin(board.occupancies));
         // static_assert(std::is_trivially_copyable_v<uint64_t>, "bitboards and occupancies must be trivially
         // copyable."); static_assert(std::is_trivially_copyable_v<int>, "Board metadata must be trivially copyable.");
         // memcpy significantly faster !

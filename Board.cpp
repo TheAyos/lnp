@@ -74,7 +74,6 @@ Board::Board(const std::string &fen) {
             default: Util::exitError("[Board::Board(fen)]INVALID FEN STRING"); break;
         }
     }
-    fen_index++;
     enpassantSquare = (fen[++fen_index] == '-') ? -1 : rf_to_square(fen[0] - 'a', 8 - (fen[1] - '0'));
 
     // important to init board !!
@@ -233,7 +232,9 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     int from = move.get_from();
     int to = move.get_to();
-    if (DEBUG) std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to) << std::endl;
+    if (DEBUG)
+        std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to)
+                  << letter_pieces[move.get_promotion_piece()] << std::endl;
 
     /* ----------------------------- regular capture ---------------------------- */
     // OPTI: minimal: variation of get_piece_on_square with enemy color to avoid iterating over 6 bitboards
@@ -293,8 +294,8 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     if (is_attacked(find_king(player), enemy)) {
         if (DEBUG)
-            std::cout << "[Board::move] INVALID MOVE, KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to)
-                      << std::endl;
+            std::cout << "[Board::move] INVALID MOVE, " << ((player == W) ? "WHITE" : "BLACK")
+                      << " KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to) << std::endl;
         savedState.reapply(*this);
         return -1;  // illegal
     }
