@@ -61,6 +61,11 @@ const U64 not_file_masks[8] = {
 const U64 not_gh_file = not_file_masks[h] & not_file_masks[g];
 const U64 not_ab_file = not_file_masks[a] & not_file_masks[b];
 
+// enum Compass {
+//     DIR_N, DIR_E, DIR_S, DIR_W,
+//     DIR_NE, DIR_SE, DIR_SW, DIR_NW
+// };
+
 /* -------------------------------------------------------------------------- */
 /*                                move updates                                */
 /* -------------------------------------------------------------------------- */

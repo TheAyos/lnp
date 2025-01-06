@@ -147,6 +147,19 @@ void Board::clear_board() {
     turn = W;
     enpassantSquare = -1;
     castlingRights = 0;
+    // clang-format off
+    //OPTI ??? test if this indeed faster than loop
+    // pieceOnSquare = {
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    //     -1, -1, -1, -1, -1, -1, -1, -1,
+    // };
+    //  clang-format on
 };
 
 /* -------------------------------------------------------------------------- */
@@ -333,6 +346,8 @@ void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
 
 BitMoveVec Board::get_all_legal_moves() {
     BitMoveVec moves;
+    // OPTI: even more, can use a preallocated array
+    moves.reserve(256);
 
     Pawn::add_legal_moves(*this, moves);
     Knight::add_legal_moves(*this, moves);
@@ -341,7 +356,6 @@ BitMoveVec Board::get_all_legal_moves() {
     Queen::add_legal_moves(*this, moves);
     King::add_legal_moves(*this, moves);
 
-    // OPTI: crucial: use pre-allocated array instead of vector for performance
     // Util::printDebug("[Board::FFSIZE]" + std::to_string(moves.size()));
     // Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
     return moves;
@@ -368,6 +382,19 @@ void Board::perftree(int depth) {
     std::cout << std::endl << totalNodes << std::endl;
 }
 
+// was testing speed below
+// inline int evaluate_piece(int piece) {
+//     if (piece == -1) return 0;
+//     int p_evaluation = 0;
+//     if (piece == PAWN || piece == pawn) p_evaluation += 100;
+//     if (piece == KNIGHT || piece == knight || piece == BISHOP || piece == bishop) p_evaluation += 300;
+//     if (piece == ROOK || piece == rook) p_evaluation += 500;
+//     if (piece == QUEEN || piece == queen) p_evaluation += 900;
+//     if (piece == KING || piece == king) p_evaluation += 9000;
+//     // if piece white, positive evaluation, else negative
+//     return ((PAWN <= piece && piece <= KING) ? p_evaluation : -p_evaluation);
+// }
+
 long Board::perft_search(int depth) {
 
     long res = 0;
@@ -377,6 +404,22 @@ long Board::perft_search(int depth) {
     for (const BitMove &mv : moves) {
 
         BoardState savedState(*this);
+
+        // { // OPTI: evaluation function slows this down :( by 1.5x !! need to optimize
+        //     int evaluation = 0;
+        //     for (int i = 0; i < 8; i++)
+        //         for (int j = 0; j < 8; j++)
+        //             evaluation += evaluate_piece(get_piece_on_square(BitOps::rf_to_square(i, j)));
+        //     if (is_attacked(find_king(W), B)) {
+        //         evaluation -= 30;
+        //         BitMoveVec moves = get_all_legal_moves();
+        //         if (moves.size() == 0) return -99999;
+        //     } else if (is_attacked(find_king(B), W)) {  // if white checks black
+        //         evaluation += 30;
+        //         BitMoveVec moves = get_all_legal_moves();
+        //         if (moves.size() == 0) return 99999;
+        //     }
+        // }
 
         if (move(mv) == -1) continue;
         res += perft_search(depth - 1);

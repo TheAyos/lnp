@@ -76,9 +76,10 @@ void Parser::parseHistory() {
         // if (DEBUG) std::cout << board;
     }
 
-    Util::printDebug(std::string("[Parser] ") + "---------End parsing board state:");
-    std::cout << board;
-    Util::printDebug(std::string("[Parser] ") + "End parsing board state-------------");
+    //NICEDEBUG
+    // Util::printDebug(std::string("[Parser] ") + "---------End parsing board state:");
+    // std::cout << board;
+    // Util::printDebug(std::string("[Parser] ") + "End parsing board state-------------");
     inputStream.close();
 }
 

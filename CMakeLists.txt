@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 # -Wunused-const-variable=2 -Weffc++
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pg")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg") # for profiling
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # fastest, need to recompile on specific machine to run (march=native)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -flto")
 

@@ -13,7 +13,7 @@ namespace Rook {
         square_to_rf(square, target_rank, target_file);
 
         // N
-        for (rank = target_rank - 1; rank >= 0; rank--) {
+        for (rank = target_rank + 1; rank < 8; rank++) {
             attacks |= (1ULL << rf_to_square(rank, target_file));
             if (blocking_square & (1ULL << rf_to_square(rank, target_file))) break;
         }
@@ -23,7 +23,7 @@ namespace Rook {
             if (blocking_square & (1ULL << rf_to_square(target_rank, file))) break;
         }
         // S
-        for (rank = target_rank + 1; rank < 8; rank++) {
+        for (rank = target_rank - 1; rank >= 0; rank--) {
             attacks |= (1ULL << rf_to_square(rank, target_file));
             if (blocking_square & (1ULL << rf_to_square(rank, target_file))) break;
         }

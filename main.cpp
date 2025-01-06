@@ -1,7 +1,7 @@
 #include <iostream>  // IWYU pragma: keep
 
 #include "Board.h"  // IWYU pragma: keep
-#include "Definitions.h"
+#include "Definitions.h"  // IWYU pragma: keep
 #include "Game.h"  // IWYU pragma: keep
 #include "Parser.h"  // IWYU pragma: keep
 #include "testing/PerftTests.h"  // IWYU pragma: keep
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     parser.parseHistory();
 
     BitMoveVec moves = board.get_all_legal_moves();
-    std::cout << board << moves << std::endl;
+    // NICEDEBUG // std::cout << board << moves << std::endl;
     int bestMove = -1;
     std::cout << "starting search..." << std::endl;
     // game.search_random(bestMove);
@@ -56,11 +56,11 @@ int main(int argc, char **argv) {
     game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, (board.turn == W) ? -99999 : 99999, -99999, 99999);
     if (bestMove == -1) Util::exitError("no move found here in main !!");
     // game.search_negamax_alpha_beta(MAX_ALPHA_BETA_DEPTH, 0, 99999, -99999);
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
     // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
     //           << std::endl;
     // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
