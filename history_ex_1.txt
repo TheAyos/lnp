@@ -12,7 +12,6 @@ a2a3
 g1h3
 a3a4
 h3g5
-h1f1
 e1g1
 g5e4
 f3f7

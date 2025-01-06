@@ -1,0 +1,28 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 10.70      0.23     0.23 30116158     0.00     0.00  BitOps::count_bits(unsigned long long)
+  9.30      0.43     0.20 39620773     0.00     0.00  Rook::get_attack_masks_blocking(int, unsigned long long)
+  8.84      0.62     0.19 629687724     0.00     0.00  BitOps::rf_to_square(int, int)
+  5.58      0.74     0.12 19097771     0.00     0.00  Board::move(BitMove const&, bool)
+  5.12      0.85     0.11 95549030     0.00     0.00  unsigned long long* std::__copy_move_a1<false, unsigned long long const*, unsigned long long*>(unsigned long long const*, unsigned long long const*, unsigned long long*)
+  5.12      0.96     0.11 19097790     0.00     0.00  Board::update_occupancies()
+  4.65      1.06     0.10 95549030     0.00     0.00  unsigned long long* std::copy<unsigned long long const*, unsigned long long*>(unsigned long long const*, unsigned long long const*, unsigned long long*)
+  4.19      1.15     0.09 39633322     0.00     0.00  Bishop::get_attack_masks_blocking(int, unsigned long long)
+  3.26      1.22     0.07 95549030     0.00     0.00  unsigned long long* std::__copy_move_a<false, unsigned long long const*, unsigned long long*>(unsigned long long const*, unsigned long long const*, unsigned long long*)
+  3.26      1.29     0.07 79254095     0.00     0.00  BitOps::square_to_rf(int, int&, int&)
+  2.79      1.35     0.06 19395868     0.00     0.00  Board::is_attacked(int, int)
+  2.33      1.40     0.05 191098060     0.00     0.00  unsigned long long const* std::__niter_base<unsigned long long const*>(unsigned long long const*)
+  2.33      1.45     0.05 95549030     0.00     0.00  unsigned long long* std::__copy_move<false, true, std::random_access_iterator_tag>::__copy_m<unsigned long long>(unsigned long long const*, unsigned long long const*, unsigned long long*)
+  2.33      1.50     0.05 19235149     0.00     0.00  BitOps::move_bit(unsigned long long&, int, int)
+  1.86      1.54     0.04 135280196     0.00     0.00  Board::get_color_piece(int, int)
+  1.86      1.58     0.04 95549030     0.00     0.00  unsigned long long* std::__copy_move_a2<false, unsigned long long const*, unsigned long long*>(unsigned long long const*, unsigned long long const*, unsigned long long*)
+  1.86      1.62     0.04 19097771     0.00     0.00  BoardState::reapply(Board&) const
+  1.40      1.65     0.03 28676744     0.00     0.00  BoardState::BoardState(Board const&)
+  1.40      1.68     0.03 19097960     0.00     0.00  BitMove::get_enpassant() const
+  1.40      1.71     0.03 19097828     0.00     0.00  __gnu_cxx::__enable_if<std::__is_scalar<unsigned long long>::__value, void>::__type std::__fill_a1<unsigned long long*, unsigned long long>(unsigned long long*, unsigned long long*, unsigned long long const&)
+  1.40      1.74     0.03   397168     0.00     0.00  Board::is_empty(int)
+  1.16      1.77     0.03 47774515     0.00     0.00  unsigned long long const* std::end<unsigned long long const, 12ul>(unsigned long long const (&) [12ul])
+...sub 1%

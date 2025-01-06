@@ -1,76 +1,86 @@
-#include "Game.h"
-#include <iostream>
-#include <string>
-#include <unordered_map>
+#include <iostream>  // IWYU pragma: keep
 
-/*
-How to open a file for reading :
-std::ifstream inputFile("input.txt");
+#include "Board.h"  // IWYU pragma: keep
+#include "Definitions.h"  // IWYU pragma: keep
+#include "Game.h"  // IWYU pragma: keep
+#include "Parser.h"  // IWYU pragma: keep
+#include "testing/PerftTests.h"  // IWYU pragma: keep
 
-How to open a file for writing :
-std::ofstream outputFile("output.txt");
+// TODO: all use same clang-format style
 
-Read a line from the file :
-std::getline(inputFile, line)
---> while (std::getline(inputFile, line))
-it reads each line from the file and stores it in the line string, it continues
-until the end of the file is reached
-*/
+// IMPORTANT: /!\ make sure /!\ to set to false before pushing to main
+#define TESTING false
 
+#if TESTING
+int main(int argc, char **argv) {
+    run_perft_tests();
+
+    // DEBUGGING: to debug move generation in details at higher depths
+    // // inspired by https://github.com/agausmann/perftree to find bugs in movegen, comparing with stockfish
+    // Board perftree_board = Board(FEN_POS_STARTING.first);
+    // std::cout << perftree_board;
+    // perftree_board.perftree(7);
+
+    // TESTING: visualize moves one by one
+    // BoardState state (board);
+    // for (auto &move : moves) {
+    //     board.move(move);
+    //     std::cout << board << std::endl;
+    //     state.reapply(board);
+    //     std::cin.get();
+    // }
+    return 0;
+}
+#else
 int main(int argc, char **argv) {
 
-  for(int i = 0; i < argc; i++) {
-    std::cout << "Displaying argument #" << std::to_string(i) << ": `"
-              << std::string(argv[i]) << "'" << std::endl;
-  }
+    Board board;
+    Game game(board);
 
-  std::unordered_map<std::string, std::string> argMap;
+    // TOKEEP: for Visual Studio debugging
+    // int fargc = 5;
+    // char *fargv[] = {"logic-and-proofs", "-H", "../../../../lnp/history_ex_1.txt", "-m", "move.txt"};
+    // Parser parser{board, fargc, fargv};
 
-  for(int i = 1; i < argc; i++) {
-    std::string arg = argv[i];
-    if(arg == "-H" || arg == "-m") {
-      if(i + 1 < argc) {
-        argMap[arg] = argv[++i]; // store next argument
-      } else {
-        std::cerr << "Error: Missing value for option `" << arg << "`."
-                  << std::endl;
-        return 1;
-      }
-    } else {
-      std::cerr << "Error: Unrecognized argument `" << arg << "`." << std::endl;
-      return 1;
-    }
-  }
-  // <yourAIname> -H <input history file> -m <output move file>
+    // NORMAL LOGIC : parsing history file
+    Parser parser{board, argc, argv};
+    parser.parseArgs();
+    parser.parseHistory();
 
-  // FIXME: -m -H zdzdz considers -H as arg to -m !!!
+    BitMoveVec moves = board.get_all_legal_moves();
+    // NICEDEBUG // std::cout << board << moves << std::endl;
+    int bestMove = -1;
+    std::cout << "starting search..." << std::endl;
+    // game.search_random(bestMove);
+    // game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
+    game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, (board.turn == W) ? -99999 : 99999, -99999, 99999);
+    if (bestMove == -1) Util::exitError("no move found here in main !!");
+    // game.search_negamax_alpha_beta(MAX_ALPHA_BETA_DEPTH, 0, 99999, -99999);
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
+    //           << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
+    //           << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
+    //           << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
+    //           << std::endl;
+    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
+    //           << std::endl;
+    std::cout << "how i see the board before writing next move: " << board;
+    parser.writeNextMove(BitMove(bestMove).get_algebraic_notation());
 
-  if(argMap.count("-H")) {
-    std::cout << "Input history filename: " << argMap["-H"] << std::endl;
-  } else {
-    std::cerr << "Error: -H option is required." << std::endl;
-    return 1;
-  }
+    // TODO: check correct parser output
+    // TODO: crucial: check that we always have a move to play
+    // int rand_int = rand() % moves.size();
+    // // std::cout << moves[rand_int] << std::endl;
+    // // parser.writeNextMove(moves[rand_int]);
+    // Chess.my_board.display();
 
-  if(argMap.count("-m")) {
-    std::cout << "Output move file: " << argMap["-m"] << std::endl;
-  } else {
-    std::cerr << "Error: -m option is required." << std::endl;
-    return 1;
-  }
-
-  Game g;
-
-  g.display();
-  Pieces *w_king = g.w_Pieces[0];
-  for(int row = 1; row < 7; row++) {
-    g.move(w_king, row, 5);
-    g.display();
-  }
-  /*
-  std::vector<Square> m = g.get_moves(w_king);
-  for (auto & element : m)
-    std::cout << element.row << " " << element.col << std::endl;
-  */
-  return 0;
+    return 0;
 }
+#endif

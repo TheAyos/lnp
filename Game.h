@@ -1,13 +1,18 @@
-#include "King.h"
+#pragma once
+#include "BitMove.h"
+#include "Board.h"
+#define MAX_ALPHA_BETA_DEPTH 5
 
-struct Game {
-	Square Board[8][8];
-	std::vector<Pieces*> w_Pieces;
-	std::vector<Pieces*> b_Pieces;
-	bool game_over;
-	int turn; // 1 for white, 0 for black
-	Game();
-	std::vector<Square> get_moves(Pieces* p);
-	void move(Pieces* p, int row, int col);
-	void display();
+class Game {
+   public:
+    Board& board;
+
+    Game(Board& board);
+
+    /* -------------------------- search and evaluation ------------------------- */
+    int evaluate();
+    int evaluate_piece(int piece);
+    void search_random(int& bestMove);
+    int search_best_alpha_beta(int& bestMove, int depth, int prev_eval, int alpha, int beta);
+    // int search_negamax_alpha_beta(BitMove* bestMove, int depth, int alpha, int beta);
 };

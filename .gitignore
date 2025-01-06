@@ -23,7 +23,7 @@ CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
-Testing
+
 Makefile
 cmake_install.cmake
 install_manifest.txt
@@ -45,3 +45,10 @@ _deps
 .ionide
 
 build/
+.vscode
+move.txt
+*nah*
+*.csv
+stockfish
+
+v1.0-vs-v1.1/

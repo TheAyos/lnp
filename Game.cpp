@@ -1,93 +1,208 @@
 #include "Game.h"
 
-Game::Game() {
-	game_over = false;
-	turn = 1;
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
 
-	King* w_king = new King(1);
-	King* b_king = new King(0);
-	w_Pieces.push_back(w_king);
-	b_Pieces.push_back(b_king);
-	
-	for ( int row = 0; row < 8; row++ )
-		for ( int col = 0; col < 8; col++ ) {
-			Board[row][col].row = row;
-			Board[row][col].col = col;
-		}
+#include "BitMove.h"
+#include "BitOps.h"
+#include "Board.h"
+#include "Definitions.h"
 
-	Board[0][4].color_id = 1;
-	Board[0][4].piece_id = 6;
-	Board[7][4].color_id = 0;
-	Board[7][4].piece_id = 6;
+// FIXME: safety handling & find a better way of passing object instances
+// FIXME: invalid move to init
+Game::Game(Board& board) : board(board) {
 }
 
-std::vector<Square> Game::get_moves(Pieces* p) {
-	std::vector<Square> moves;
-	// std::vector<Pieces*> op_Pieces = p->my_color ? b_Pieces : w_Pieces;
-	
-	for ( auto & m : p->potential_moves(Board) ) {
-		int row = m.row;
-		int col = m.col;
-		int drow[] = {1,1,1,0,0,-1,-1,-1};
-		int dcol[] = {1,0,-1,1,-1,1,0,-1};
-		bool safe = true;
-		for ( int i = 0; i < 8; i++ ) {
-			int nrow = row+drow[i];
-			int ncol = col+dcol[i];
-			// std::cout << nrow << " " << ncol << std::endl;
-			if (nrow>=0 && nrow < 8 && ncol >=0 && ncol<8)
-				if (Board[nrow][ncol].piece_id == 6 && Board[nrow][ncol].color_id != p->my_color)
-					safe = false; // near another king
-		}
-		if (safe) moves.push_back(m);
-	}
-	return moves;
+/* -------------------------------------------------------------------------- */
+/*                search and evaluation (i.e. actually playing)               */
+/* -------------------------------------------------------------------------- */
+
+// TOKEEP: for debugging purposes
+void Game::search_random(int& bestMove) {
+    BitMoveVec moves = board.get_all_legal_moves();
+    // std::cout << "---------------[search_random]: moves: " << std::endl;
+    // std::cout << "---------------[search_random]: moves: " << std::endl;
+    // std::cout << board << moves;
+    // std::cout << "[search_random]: moves---------------" << std::endl;
+    // std::cout << "[search_random]: moves---------------" << std::endl;
+    srand(time(0));
+    if (!moves.size()) Util::exitError("search_random: no moves generated !!");
+    bestMove = moves[rand() % moves.size()].get_bit_repr();
+    // std::cout << "[search_random]: " << sq_to_coord(bestMove->get_from()) << ", " << sq_to_coord(bestMove->get_to())
+    //           << ", " << bestMove->get_algebraic_notation() << std::endl;
+    std::cout << "[search_random]: " << BitMove(bestMove).get_algebraic_notation() << std::endl;
 }
 
-void Game::move(Pieces* p, int row, int col) {
-	std::vector<Square> moves = get_moves(p);
-	bool legal = false;
-	for (auto & sq : moves) {
-		if (sq.row == row && sq.col == col)
-			legal = true;
-	}
+// WIP
+// int Game::search_best_alpha_beta(int& bestMove, int depth, int alpha, int beta) {
+//     // alpha is the best value that the maximizing player currently can guarantee
+//     // beta is the best value that the minimizing player currently can guarantee
+//     if (depth == 0) return evaluate();
+//     static long nodes_searched = 0;
+//     static int ply = 0;
+//     if (depth == MAX_ALPHA_BETA_DEPTH) nodes_searched = 0;
+//     nodes_searched++;
 
-	if (legal) {
-		Board[row][col].piece_id = Board[p->my_row][p->my_col].piece_id;  
-		Board[row][col].color_id = Board[p->my_row][p->my_col].color_id;
-		Board[p->my_row][p->my_col].piece_id = -1;
-		Board[p->my_row][p->my_col].color_id = -1;
-		p->my_row = row;
-		p->my_col = col;
-	}
-	else {
-		std::cout << "Illegal move" << std::endl;
-		exit(0);
-	}
+//     int prevAlpha = alpha;
+//     BitMoveVec moves = board.get_all_legal_moves();
+//     int bestLocalMove = -1;
+
+//     for (BitMove& mv : moves) {
+
+//         BoardState savedState = BoardState(board);
+//         board.move(mv);
+//         int score = -search_best_alpha_beta(bestMove, depth - 1, -beta, -alpha);
+//         savedState.reapply(board);  // restore board state
+//         if (score >= beta) {
+//             return beta;
+//         }
+//         if (score > alpha) {
+//             alpha = score;
+//             if (depth == 0) bestLocalMove = mv.get_bit_repr();
+//         }
+//     }
+
+//     if (alpha != prevAlpha) {
+//         bestMove = bestLocalMove;  // BRUH
+//         std::cout << "Best move in search: " << BitMove(bestLocalMove).get_algebraic_notation() << std::endl;
+//         std::cout << "Total nodes searched: " << nodes_searched << std::endl;
+//     } else {
+//         std::cout << "No moves found" << std::endl;
+//     }
+//     return alpha;
+// }
+
+int Game::search_best_alpha_beta(int& bestMove, int depth, int prev_eval, int alpha, int beta) {
+    if (depth == 0) return evaluate();
+
+    static long nodes_searched;
+    if (depth == MAX_ALPHA_BETA_DEPTH) {
+        nodes_searched = 0;  // reset at start of new search
+    }
+    nodes_searched++;
+
+    int bestValue = (board.turn == W) ? -99999 : 99999;
+    int score = 0;
+
+    BitMoveVec moves = board.get_all_legal_moves();
+    for (const auto& move : moves) {
+
+        BoardState savedState(board);
+        board.move(move);
+        score = search_best_alpha_beta(bestMove, depth - 1, prev_eval, alpha, beta);
+        savedState.reapply(board);
+
+        if (board.turn == W) {  // maximizing player
+            // std::cout << "Whereeee" << std::endl;
+            if (score > bestValue) {
+                bestValue = score;
+                if (depth == MAX_ALPHA_BETA_DEPTH) {
+                    bestMove = move.get_bit_repr();
+                    // std::cout << "try set bestmove(max): " << move.get_bit_repr() << std::endl;
+                }
+                if (score > alpha) {
+                    alpha = score;
+                }
+            }
+        } else {  // minimizing player
+            // std::cout << "Bhereeee" << std::endl;
+            if (score < bestValue) {
+                bestValue = score;
+                if (depth == MAX_ALPHA_BETA_DEPTH) {
+                    bestMove = move.get_bit_repr();
+                    // std::cout << "try set bestmove(min): " << move.get_bit_repr() << std::endl;
+                }
+                if (score < beta) {
+                    beta = score;
+                }
+            }
+        }
+
+        if (beta <= alpha) break;  // alpha-beta pruning
+    }
+
+    if (depth == MAX_ALPHA_BETA_DEPTH) {
+        std::cout << "searched and found best move in search: " << bestMove << std::endl;
+        std::cout << "Total nodes searched: " << nodes_searched << std::endl;
+        return 0;
+    }
+
+    return bestValue;
 }
 
-void Game::display() {
-	std::string line = "";
-	for (int i = 0; i < 8; i++) line += " ----";
-	line += "\n";
+// WIP
+/*int Game::search_negamax_alpha_beta(int depth, int alpha, int beta) {
+    if (depth == 0) return evaluate();
 
-	std::string out = line;
-	for (int row = 7; row >= 0; row--) {
-		for (int col = 0; col < 8; col++) {
-			out += "| ";
-			Square cur_sq = Board[row][col];
-			if (cur_sq.color_id == -1 ) // Empty square:
-				out += "   ";
-			else {
-				if (cur_sq.color_id == 0) // Black piece
-					out += "B";
-				else // White piece
-					out += "W";
-				if (cur_sq.piece_id == 6) // King
-					out += "K ";
-			}
-		}
-		out += "|\n"+line;
-	}
-	std::cout << out << std::endl;
+    BitMoveVec moves = board.get_all_legal_moves();
+
+    if (moves.size() == 0) {
+        // TODO: need a board.player_in_check() function
+        // if current player in check
+        if (board.is_attacked(board.find_king(board.turn), 1 - board.turn))
+            return -99999;
+        else
+            return 0; // stalemate
+    }
+
+    int bestScore = -99999;
+    // FIXME: no new !!!
+    BitMove bestLocalMove(h1, h1, -1, NO_PROMOTION, false, false, false, false);
+
+    for (const BitMove& move : moves) {
+        BoardState savedState = BoardState(board);
+        board.move(move);
+        // best for minimizing player is worst for maximizing player and vice versa (hence the alpha:=-beta,
+beta:=-alpha) int score = -search_negamax_alpha_beta(depth - 1, -beta, -alpha); savedState.reapply(board);
+
+        bestScore = std::max(bestScore, score);
+        bestLocalMove = move;
+
+        if (score >= beta) {
+            bestLocalMove = move;
+            return beta;
+        }
+        if (score > alpha) {
+            alpha = score;
+            bestLocalMove = move;
+        }
+    }
+
+    bestMove = new BitMove(bestLocalMove);
+    return alpha;
+}*/
+
+int Game::evaluate() {
+    int evaluation = 0;
+
+    for (int i = 0; i < 8; i++)
+        for (int j = 0; j < 8; j++)
+            evaluation += evaluate_piece(board.get_piece_on_square(BitOps::rf_to_square(i, j)));
+
+    // TODO: crucial: use justCheckCheck on board.move()
+    // if black checks white
+    if (board.is_attacked(board.find_king(W), B)) {
+        evaluation -= 30;
+        BitMoveVec moves = board.get_all_legal_moves();
+        if (moves.size() == 0) return -99999;
+
+    } else if (board.is_attacked(board.find_king(B), W)) {  // if white checks black
+        evaluation += 30;
+        BitMoveVec moves = board.get_all_legal_moves();
+        if (moves.size() == 0) return 99999;
+    }
+    return evaluation;
+}
+
+int Game::evaluate_piece(int piece) {
+    if (piece == -1) return 0;
+    int p_evaluation = 0;
+    if (piece == PAWN || piece == pawn) p_evaluation += 100;
+    if (piece == KNIGHT || piece == knight || piece == BISHOP || piece == bishop) p_evaluation += 300;
+    if (piece == ROOK || piece == rook) p_evaluation += 500;
+    if (piece == QUEEN || piece == queen) p_evaluation += 900;
+    if (piece == KING || piece == king) p_evaluation += 9000;
+    // if piece white, positive evaluation, else negative
+    return ((PAWN <= piece && piece <= KING) ? p_evaluation : -p_evaluation);
 }
