@@ -2,8 +2,8 @@
 # small bash script to run multiple games and count the results :)
 
 # command="chessGame -W ./build/logic-and-proofs -B chessDeterministicPlayer"
-command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
-#command="chessGame -B ./build/logic-and-proofs -W chessRandomPlayer"
+#command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
+command="chessGame -B ./build/logic-and-proofs -W chessRandomPlayer"
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <number_of_games>"
@@ -31,6 +31,7 @@ for ((game = 1; game <= games_to_play; game++)); do
         # continue
     fi
 
+    fulloutput=$output
     output=$(echo "$output" | tail -n 1)
     echo "$output"
 
@@ -42,9 +43,10 @@ for ((game = 1; game <= games_to_play; game++)); do
         ((black_wins++))
     else
         echo "Unexpected output in game $game: "
+	echo $fulloutput > "$game.log"
     fi
 
-    sleep 0.1
+    sleep 0.01
 done
 
 echo "Results after $games_to_play games:"

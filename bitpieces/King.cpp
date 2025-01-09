@@ -94,10 +94,10 @@ namespace King {
             }
             if (empty) {
                 // check (3) and (4)
-                if (!board.is_attacked(kingInitialSquare, 1 - turn)
-                    && !board.is_attacked(kingSideEmptySquares[0], 1 - turn))
-                    moves.push_back(
-                        BitMove(kingInitialSquare, kingSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+                //FIXME: add check is attacked on other kingsideemptysquare ?
+                if (!board.is_attacked(kingInitialSquare, 1 - turn) && !board.is_attacked(kingSideEmptySquares[0], 1 - turn))
+                board.add_move_if_legal(moves, BitMove(kingInitialSquare, kingSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+                // moves.push_back();
             }
         }
         if (board.castlingRights & queenSideCastlingRight) {
@@ -109,10 +109,10 @@ namespace King {
                 }
             }
             if (empty) {
-                if (!board.is_attacked(kingInitialSquare, 1 - turn)
-                    && !board.is_attacked(queenSideEmptySquares[1], 1 - turn))
-                    moves.push_back(BitMove(
-                        kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+                //FIXME: add check is attacked on other queensideemptysquare ?
+                if (!board.is_attacked(kingInitialSquare, 1 - turn) && !board.is_attacked(queenSideEmptySquares[1], 1 - turn))
+                    board.add_move_if_legal(moves, BitMove(kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+                    // moves.push_back(BitMove(kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
             }
         }
     }
