@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <string>
+#include <cassert>
 
 int char_to_pieces(char c);
 char promoted_pieces(int c);

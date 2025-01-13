@@ -21,7 +21,26 @@ using namespace BitOps;
 /* -------------------------------------------------------------------------- */
 
 // starting FEN position
-Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"){};
+Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"){
+    for (int i = 4; i < 8; i++)
+        for (int j = 0; j < 8; j++) {
+            int idx = i*8+j;
+            if (i == 7) {
+                if (j == 0 || j == 7) pieceOnSquare[idx] = 3;
+                if (j == 1 || j == 6) pieceOnSquare[idx] = 1;
+                if (j == 2 || j == 5) pieceOnSquare[idx] = 2;
+                if (j == 3) pieceOnSquare[idx] = 4;
+                if (j == 4) pieceOnSquare[idx] = 5;
+            }
+            else if (i == 6) pieceOnSquare[idx] = 0;
+            else pieceOnSquare[idx] = 12;
+
+            int ridx = (7-i)*8+j;
+            if (i >= 6) pieceOnSquare[ridx] = pieceOnSquare[idx]+6;
+            else pieceOnSquare[ridx] = 12;
+        }
+
+};
 
 // TODO: FIXME: OPTI: fixcpcpcpc
 Board::Board(const std::string &fen) {
@@ -245,6 +264,12 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     int from = move.get_from();
     int to = move.get_to();
+    
+    int captured = to; 
+    // std::cout << pieceOnSquare[from] << std::endl;    
+    pieceOnSquare[to] = pieceOnSquare[from];
+    pieceOnSquare[from] = 12;
+    
     if (DEBUG)
         std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to)
                   << letter_pieces[move.get_promotion_piece()] << std::endl;
@@ -264,7 +289,16 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     // if (DEBUG) std::cout << "-*---*-AFTER MOVEBIT HANDLING-*---*-" << *this << std::endl;
 
     /* ------------------------------- en passant ------------------------------- */
-    if (move.get_enpassant()) (turn == W) ? clear_bit(bitboards[pawn], to + 8) : clear_bit(bitboards[PAWN], to - 8);
+    if (move.get_enpassant()) {
+	if (turn == W) {
+	    clear_bit(bitboards[pawn], to + 8);
+	    pieceOnSquare[to+8] = 12;
+	}
+	else {
+	    clear_bit(bitboards[PAWN], to - 8);
+	    pieceOnSquare[to-8] = 12;
+	}
+    }
 
     // a move is made, reset previous enpassant
     enpassantSquare = -1;
@@ -276,16 +310,30 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     if (move.get_promotion_piece()) {
         clear_bit(bitboards[get_color_piece(PAWN, turn)], to);
         set_bit(bitboards[get_color_piece(move.get_promotion_piece(), turn)], to);
+       	
+        pieceOnSquare[to] = get_color_piece(move.get_promotion_piece(), turn);	
     }
 
     /* ------------------------------ king castling ----------------------------- */
     if (move.get_castling()) {
         // handle castling according to the castling type (in order: WK, WQ, BK, BQ)
         switch (to) {
-            case g1: move_bit(bitboards[ROOK], h1, f1); break;
-            case c1: move_bit(bitboards[ROOK], a1, d1); break;
-            case g8: move_bit(bitboards[rook], h8, f8); break;
-            case c8: move_bit(bitboards[rook], a8, d8); break;
+            case g1: move_bit(bitboards[ROOK], h1, f1); 
+		     pieceOnSquare[61] = pieceOnSquare[63];
+		     pieceOnSquare[63] = 12;		     
+		     break;
+            case c1: move_bit(bitboards[ROOK], a1, d1);
+		     pieceOnSquare[59] = pieceOnSquare[56];
+		     pieceOnSquare[56] = 12;
+		     break;
+            case g8: move_bit(bitboards[rook], h8, f8);
+		     pieceOnSquare[5] = pieceOnSquare[7];
+		     pieceOnSquare[7] = 12;
+		     break;
+            case c8: move_bit(bitboards[rook], a8, d8);
+		     pieceOnSquare[3] = pieceOnSquare[0];
+		     pieceOnSquare[0] = 12;
+		     break;
         }
     }
 
@@ -315,11 +363,11 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     // restore board state if we only wanted to check for checks and not apply the move
     if (justCheckCheck) savedState.reapply(*this);
-
+   
     return 0;  // legal
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------ */
 /*                               attack-related                               */
 /* -------------------------------------------------------------------------- */
 
@@ -422,6 +470,16 @@ long Board::perft_search(int depth) {
         // }
 
         if (move(mv) == -1) continue;
+
+	/*
+    	std::cout << mv.get_piece() << std::endl;
+    	std::cout << pieceOnSquare[mv.get_to()] << std::endl << "--" << std::endl;
+    	std::cout << mv.get_from() << " " << mv.get_to()  << std::endl;
+    	std::cout << *this << std::endl; 
+	*/
+    	// assert(pieceOnSquare[mv.get_to()] == mv.get_piece());	
+
+
         res += perft_search(depth - 1);
 
         savedState.reapply(*this);

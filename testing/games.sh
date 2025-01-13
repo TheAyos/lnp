@@ -3,7 +3,7 @@
 
 # command="chessGame -W ./build/logic-and-proofs -B chessDeterministicPlayer"
 #command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
-command="chessGame -B ./build/logic-and-proofs -W chessRandomPlayer"
+command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <number_of_games>"
@@ -37,9 +37,9 @@ for ((game = 1; game <= games_to_play; game++)); do
 
     if [[ $output == *"Draw! Game over."* ]]; then
         ((draws++))
-    elif [[ $output == *"The 'White' player wins!"* ]]; then
+    elif [[ $output == *"The White player wins!"* ]]; then
         ((white_wins++))
-    elif [[ $output == *"The 'Black' player wins!"* ]]; then
+    elif [[ $output == *"The Black player wins!"* ]]; then
         ((black_wins++))
     else
         echo "Unexpected output in game $game: "

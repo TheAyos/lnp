@@ -1,4 +1,5 @@
 #include <iostream>  // IWYU pragma: keep
+#include <cassert>
 
 #include "Board.h"  // IWYU pragma: keep
 #include "Definitions.h"  // IWYU pragma: keep
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
 int main(int argc, char **argv) {
 
     Board board;
-    Game game(board);
+    Game game(board); 
 
     // TOKEEP: for Visual Studio debugging
     // int fargc = 5;
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
     Parser parser{board, argc, argv};
     parser.parseArgs();
     parser.parseHistory();
-
+    
     BitMoveVec moves = board.get_all_legal_moves();
     // NICEDEBUG // std::cout << board << moves << std::endl;
     int bestMove = -1;

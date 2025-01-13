@@ -28,7 +28,7 @@ class Board {
     int turn;
 
     // to speed up piece lookup
-    std::array<int, 64> pieceOnSquare;
+    int pieceOnSquare[64];
 
     /* ----------------------- constructor & board-related ---------------------- */
 
@@ -103,6 +103,7 @@ class BoardState {
     int turn;
     int enpassantSquare;
     int castlingRights;
+    int pieceOnSquare[64];
 
     BoardState(const Board &board) {
         // std::copy(std::begin(board.bitboards), std::end(board.bitboards), std::begin(bitboards));
@@ -125,6 +126,7 @@ class BoardState {
         // #2  0x0000555555566284 in std::__copy_move_a2<false, unsigned long long const*, unsigned long long*> (
         std::memcpy(bitboards, board.bitboards, sizeof(bitboards));
         std::memcpy(occupancies, board.occupancies, sizeof(occupancies));
+	std::memcpy(pieceOnSquare, board.pieceOnSquare, sizeof(pieceOnSquare));
 
         turn = board.turn;
         enpassantSquare = board.enpassantSquare;
@@ -139,6 +141,7 @@ class BoardState {
         // memcpy significantly faster !
         std::memcpy(board.bitboards, bitboards, sizeof(bitboards));
         std::memcpy(board.occupancies, occupancies, sizeof(occupancies));
+	std::memcpy(board.pieceOnSquare, pieceOnSquare, sizeof(pieceOnSquare));
 
         board.turn = turn;
         board.enpassantSquare = enpassantSquare;

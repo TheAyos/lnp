@@ -178,31 +178,117 @@ int Game::evaluate() {
 
     for (int i = 0; i < 8; i++)
         for (int j = 0; j < 8; j++)
-            evaluation += evaluate_piece(board.get_piece_on_square(BitOps::rf_to_square(i, j)));
+            evaluation += evaluate_piece(board.pieceOnSquare[i*8+j],i,j);
 
     // TODO: crucial: use justCheckCheck on board.move()
     // if black checks white
     if (board.is_attacked(board.find_king(W), B)) {
-        evaluation -= 30;
+        evaluation -= 50;
         BitMoveVec moves = board.get_all_legal_moves();
         if (moves.size() == 0) return -99999;
 
     } else if (board.is_attacked(board.find_king(B), W)) {  // if white checks black
-        evaluation += 30;
+        evaluation += 50;
         BitMoveVec moves = board.get_all_legal_moves();
         if (moves.size() == 0) return 99999;
     }
     return evaluation;
 }
 
-int Game::evaluate_piece(int piece) {
-    if (piece == -1) return 0;
-    int p_evaluation = 0;
-    if (piece == PAWN || piece == pawn) p_evaluation += 100;
-    if (piece == KNIGHT || piece == knight || piece == BISHOP || piece == bishop) p_evaluation += 300;
-    if (piece == ROOK || piece == rook) p_evaluation += 500;
-    if (piece == QUEEN || piece == queen) p_evaluation += 900;
-    if (piece == KING || piece == king) p_evaluation += 9000;
-    // if piece white, positive evaluation, else negative
-    return ((PAWN <= piece && piece <= KING) ? p_evaluation : -p_evaluation);
+int Game::evaluate_piece(int piece, int rank, int file) {
+    	static const int pawn_table[8][8] = {
+	    {  0,  0,  0,  0,  0,  0,  0,  0 },
+	    { 50, 50, 50, 50, 50, 50, 50, 50 },
+	    { 10, 10, 20, 30, 30, 20, 10, 10 },
+	    {  5,  5, 10, 25, 25, 10,  5,  5 },
+	    {  0,  0,  0, 20, 20,  0,  0,  0 },
+	    {  5, -5, -10,  0,  0, -10, -5,  5 },
+	    {  5, 10, 10, -20, -20, 10, 10,  5 },
+	    {  0,  0,  0,  0,  0,  0,  0,  0 }
+	};
+	
+	static const int knight_table[8][8] = {
+	    { -50, -40, -30, -30, -30, -30, -40, -50 },
+	    { -40, -20,   0,   0,   0,   0, -20, -40 },
+	    { -30,   0,  10,  15,  15,  10,   0, -30 },
+	    { -30,   5,  15,  20,  20,  15,   5, -30 },
+	    { -30,   0,  15,  20,  20,  15,   0, -30 },
+	    { -30,   5,  10,  15,  15,  10,   5, -30 },
+	    { -40, -20,   0,   5,   5,   0, -20, -40 },
+	    { -50, -40, -30, -30, -30, -30, -40, -50 }
+	};
+
+	static const int bishop_table[8][8] = {
+	    { -20, -10, -10, -10, -10, -10, -10, -20 },
+	    { -10,   0,   0,   0,   0,   0,   0, -10 },
+	    { -10,   0,   5,  10,  10,   5,   0, -10 },
+	    { -10,   5,   5,  10,  10,   5,   5, -10 },
+	    { -10,   0,  10,  10,  10,  10,   0, -10 },
+	    { -10,  10,  10,  10,  10,  10,  10, -10 },
+	    { -10,   5,   0,   0,   0,   0,   5, -10 },
+	    { -20, -10, -10, -10, -10, -10, -10, -20 }
+	};
+
+	static const int rook_table[8][8] = {
+	    {  0,  0,  0,  0,  0,  0,  0,  0 },
+	    {  5, 10, 10, 10, 10, 10, 10,  5 },
+	    { -5,  0,  0,  0,  0,  0,  0, -5 },
+	    { -5,  0,  0,  0,  0,  0,  0, -5 },
+	    { -5,  0,  0,  0,  0,  0,  0, -5 },
+	    { -5,  0,  0,  0,  0,  0,  0, -5 },
+	    {  5, 10, 10, 10, 10, 10, 10,  5 },
+	    {  0,  0,  0,  5,  5,  0,  0,  0 }
+	};
+
+	static const int queen_table[8][8] = {
+	    { -20, -10, -10,  -5,  -5, -10, -10, -20 },
+	    { -10,   0,   0,   0,   0,   0,   0, -10 },
+	    { -10,   0,   5,   5,   5,   5,   0, -10 },
+	    {  -5,   0,   5,   5,   5,   5,   0,  -5 },
+	    {   0,   0,   5,   5,   5,   5,   0,  -5 },
+	    { -10,   5,   5,   5,   5,   5,   0, -10 },
+	    { -10,   0,   5,   0,   0,   0,   0, -10 },
+	    { -20, -10, -10,  -5,  -5, -10, -10, -20 }
+	};
+
+	static const int king_table[8][8] = {
+	    { -30, -40, -40, -50, -50, -40, -40, -30 },
+    	    { -30, -40, -40, -50, -50, -40, -40, -30 },
+    	    { -30, -40, -40, -50, -50, -40, -40, -30 },
+            { -30, -40, -40, -50, -50, -40, -40, -30 },
+            { -20, -30, -30, -40, -40, -30, -30, -20 },
+            { -10, -20, -20, -20, -20, -20, -20, -10 },
+            {  20,  20,   0,   0,   0,   0,  20,  20 },
+            {  20,  30,  10,   0,   0,  10,  30,  20 }
+	};
+    if (piece == 12) return 0;
+    int piecetype = piece%6;
+    int color = (piece > 5) ? 0 : 1;
+
+    static const int material_values[] = {100,320,330,500,900,10000};
+    int base_value = material_values[piecetype];
+    
+    int positional_bonus = 0;
+    switch (piecetype) {
+    case PAWN:
+        positional_bonus = color ? pawn_table[rank][file] : pawn_table[7 - rank][file];
+        break;
+    case KNIGHT:
+        positional_bonus = color ? knight_table[rank][file] : knight_table[7 - rank][file];
+        break;
+    case BISHOP:
+        positional_bonus = color ? bishop_table[rank][file] : bishop_table[7 - rank][file];
+        break;
+    case ROOK:
+        positional_bonus = color ? rook_table[rank][file] : rook_table[7 - rank][file];
+        break;
+    case QUEEN:
+        positional_bonus = color ? queen_table[rank][file] : queen_table[7 - rank][file];
+        break;
+    case KING:
+        positional_bonus = color ? king_table[rank][file] : king_table[7 - rank][file];
+        break;
+    }
+    int value = base_value+positional_bonus;
+    return (color ? value : -value);
 }
