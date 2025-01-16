@@ -129,8 +129,14 @@ double Game::evaluate_piece(Piece* piece) {
     int x = pos[0] - 'a';
 
     int y = 8 - (pos[1] - '0');
-    
+
     double p_evaluation = 0;
+
+
+    
+    static const double piece_values[] = {100, 300, 300, 500, 900, 9000};
+
+
 	return p_evaluation;
 }
 
