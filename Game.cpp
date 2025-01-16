@@ -204,6 +204,12 @@ double Game::evaluate_piece(Piece* piece) {
 		{ 2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0 }
 	};
 
+    switch (piece) {
+        case PAWN:
+            p_evaluation += piece_values[0] + pawn_table[y][x];
+            break;
+
+    }
 
 	return p_evaluation;
 }
