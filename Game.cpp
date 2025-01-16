@@ -229,6 +229,12 @@ double Game::evaluate_piece(Piece* piece) {
         case rook:
             p_evaluation -= piece_values[3] + rook_table[7 - y][x];
             break;
+        case QUEEN:
+            p_evaluation += piece_values[4] + queen_table[y][x];
+            break;
+        case queen:
+            p_evaluation -= piece_values[4] + queen_table[7 - y][x];
+            break;
     }
 
 	return p_evaluation;
