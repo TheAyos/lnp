@@ -37,9 +37,9 @@ for ((game = 1; game <= games_to_play; game++)); do
 
     if [[ $output == *"Draw! Game over."* ]]; then
         ((draws++))
-    elif [[ $output == *"The White player wins!"* ]]; then
+    elif [[ $output == *"The 'White' player wins!"* ]]; then
         ((white_wins++))
-    elif [[ $output == *"The Black player wins!"* ]]; then
+    elif [[ $output == *"The 'Black' player wins!"* ]]; then
         ((black_wins++))
     else
         echo "Unexpected output in game $game: "

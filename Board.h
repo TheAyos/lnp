@@ -27,6 +27,9 @@ class Board {
     // current turn, W or B
     int turn;
 
+    // number of moves made since the beginning of the game (ply)
+    int ply;
+
     // to speed up piece lookup
     int pieceOnSquare[64];
 
@@ -93,6 +96,9 @@ class Board {
     // for debugging purposes, output to be compared with stockfish
     void perftree(int depth);
     long perft_search(int depth);
+
+    //get FEN from a board disposition
+    std::string getFEN();
 };
 
 // object to store the state of the board, to allow for easy way of undoing moves
@@ -103,6 +109,7 @@ class BoardState {
     int turn;
     int enpassantSquare;
     int castlingRights;
+    int ply;
     int pieceOnSquare[64];
 
     BoardState(const Board &board) {
@@ -126,9 +133,10 @@ class BoardState {
         // #2  0x0000555555566284 in std::__copy_move_a2<false, unsigned long long const*, unsigned long long*> (
         std::memcpy(bitboards, board.bitboards, sizeof(bitboards));
         std::memcpy(occupancies, board.occupancies, sizeof(occupancies));
-	std::memcpy(pieceOnSquare, board.pieceOnSquare, sizeof(pieceOnSquare));
+	    std::memcpy(pieceOnSquare, board.pieceOnSquare, sizeof(pieceOnSquare));
 
         turn = board.turn;
+        ply = board.ply;
         enpassantSquare = board.enpassantSquare;
         castlingRights = board.castlingRights;
     }
@@ -141,9 +149,10 @@ class BoardState {
         // memcpy significantly faster !
         std::memcpy(board.bitboards, bitboards, sizeof(bitboards));
         std::memcpy(board.occupancies, occupancies, sizeof(occupancies));
-	std::memcpy(board.pieceOnSquare, pieceOnSquare, sizeof(pieceOnSquare));
+	    std::memcpy(board.pieceOnSquare, pieceOnSquare, sizeof(pieceOnSquare));
 
         board.turn = turn;
+        board.ply = ply;
         board.enpassantSquare = enpassantSquare;
         board.castlingRights = castlingRights;
     }

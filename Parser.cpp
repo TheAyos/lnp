@@ -80,6 +80,7 @@ void Parser::parseHistory() {
     // Util::printDebug(std::string("[Parser] ") + "---------End parsing board state:");
     // std::cout << board;
     // Util::printDebug(std::string("[Parser] ") + "End parsing board state-------------");
+    std::cout << "[Parser][ply=] " << board.ply << std::endl;
     inputStream.close();
 }
 

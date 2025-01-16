@@ -15,6 +15,7 @@ set(CMAKE_CXX_STANDARD 17)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 # fastest, need to recompile on specific machine to run (march=native)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -flto")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,stack-size=10000000")
 
 include_directories(.)
 
@@ -25,7 +26,8 @@ add_library(headers
             Game.h Game.cpp
             bitpieces/Pawn.h bitpieces/Pawn.cpp bitpieces/Knight.h bitpieces/Knight.cpp
             bitpieces/Queen.h bitpieces/Queen.cpp bitpieces/King.h bitpieces/King.cpp
-            bitpieces/Bishop.h bitpieces/Bishop.cpp bitpieces/Rook.h bitpieces/Rook.cpp)
+            bitpieces/Bishop.h bitpieces/Bishop.cpp bitpieces/Rook.h bitpieces/Rook.cpp
+            Openings.h Openings.cpp)
 
 add_executable(logic-and-proofs main.cpp)
 target_link_libraries(logic-and-proofs PRIVATE headers)

@@ -13,4 +13,10 @@
 - Added FEN parsing to test tricky positions
 - Optimized speed of bit operations further
 - Fixed movegen bugs that appeared at depth 7
+### Week 5:
 - Added a PerftTests testing suite
+- Trying to understand magic bitboards and generate magics
+### Week 6:
+- Helped with some merge conflicts
+### Week 7:
+- StackOverflow Bugfix (need to link the binary with a bigger stack size)

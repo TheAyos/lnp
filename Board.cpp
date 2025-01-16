@@ -99,41 +99,6 @@ Board::Board(const std::string &fen) {
     update_occupancies();
 }
 
-// void Board::setup_initial_pieces() {
-//     set_bit(bitboards[PAWN], g2);
-//     set_bit(bitboards[PAWN], h2);
-//     set_bit(bitboards[PAWN], f2);
-//     set_bit(bitboards[PAWN], e2);
-//     set_bit(bitboards[PAWN], d2);
-//     set_bit(bitboards[PAWN], a2);
-//     set_bit(bitboards[PAWN], b2);
-//     set_bit(bitboards[PAWN], c2);
-//     set_bit(bitboards[pawn], g7);
-//     set_bit(bitboards[pawn], h7);
-//     set_bit(bitboards[pawn], f7);
-//     set_bit(bitboards[pawn], e7);
-//     set_bit(bitboards[pawn], d7);
-//     set_bit(bitboards[pawn], a7);
-//     set_bit(bitboards[pawn], b7);
-//     set_bit(bitboards[pawn], c7);
-//     set_bit(bitboards[KNIGHT], b1);
-//     set_bit(bitboards[KNIGHT], g1);
-//     set_bit(bitboards[knight], b8);
-//     set_bit(bitboards[knight], g8);
-//     set_bit(bitboards[BISHOP], c1);
-//     set_bit(bitboards[BISHOP], f1);
-//     set_bit(bitboards[bishop], c8);
-//     set_bit(bitboards[bishop], f8);
-//     set_bit(bitboards[ROOK], a1);
-//     set_bit(bitboards[ROOK], h1);
-//     set_bit(bitboards[rook], a8);
-//     set_bit(bitboards[rook], h8);
-//     set_bit(bitboards[QUEEN], d1);
-//     set_bit(bitboards[KING], e1);
-//     set_bit(bitboards[queen], d8);
-//     set_bit(bitboards[king], e8);
-// }
-
 void Board::update_occupancies() {
     // learned that fill is not the best way to set all bits to 0 for contiguous memory
     // it is more for containers that do not have contiguous memory, like lists/vectors
@@ -164,21 +129,11 @@ void Board::clear_board() {
     std::fill(std::begin(bitboards), std::end(bitboards), 0ULL);
     std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
     turn = W;
+    ply = 0;
     enpassantSquare = -1;
     castlingRights = 0;
-    // clang-format off
-    //OPTI ??? test if this indeed faster than loop
-    // pieceOnSquare = {
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    //     -1, -1, -1, -1, -1, -1, -1, -1,
-    // };
-    //  clang-format on
+    for (int i = 0; i < 64; i++) pieceOnSquare[i] = 12;
+    
 };
 
 /* -------------------------------------------------------------------------- */
@@ -345,6 +300,7 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     int player = turn;
     int enemy = 1 - turn;
     turn = 1 - turn;
+    ply++;
 
     // cHeCkInG cHeCkS
     // std::cout << sq_to_coord(find_king(player)) << std::endl;
@@ -486,3 +442,42 @@ long Board::perft_search(int depth) {
     }
     return res;
 }
+
+std::string Board::getFEN() {
+    std::string fen;
+
+    //for each square
+    for (int rank = 0; rank < 8; ++rank) { 
+        int emptySquares = 0; 
+        for (int file = 0; file < 8; ++file) {
+            int square = rf_to_square(rank, file);  
+            int piece = get_piece_on_square(square); 
+            //we get the piece
+
+            if (piece == -1) { 
+                ++emptySquares; //counter for empty squares
+            } else {
+                if (emptySquares > 0) { 
+                    fen += std::to_string(emptySquares);
+                    emptySquares = 0;
+                }
+                fen += letter_pieces[get_color_piece(piece, piece >= PAWN && piece <= KING ? W : B)];
+            }
+        }
+        if (emptySquares > 0) fen += std::to_string(emptySquares); 
+        if (rank < 7) fen += "/"; 
+    }
+
+    //turn
+    fen += (turn == W ? " w " : " b ");
+    //castling
+    fen += (castlingRights == 0 ? "-" : 
+        (std::string(castlingRights & WK ? "K" : "") +
+         std::string(castlingRights & WQ ? "Q" : "") +
+         std::string(castlingRights & BK ? "k" : "") +
+         std::string(castlingRights & BQ ? "q" : "")));    
+
+    std::cout << "the actual fen is : " << fen << std::endl;
+    return fen;
+}
+

@@ -6,6 +6,7 @@
 #include "Game.h"  // IWYU pragma: keep
 #include "Parser.h"  // IWYU pragma: keep
 #include "testing/PerftTests.h"  // IWYU pragma: keep
+#include "Openings.h"
 
 // TODO: all use same clang-format style
 
@@ -14,6 +15,16 @@
 
 #if TESTING
 int main(int argc, char **argv) {
+    // Board board;
+    // Openings openings = Openings("openings.txt");
+    // Game game(board, &openings);
+    
+    // if (game.board.ply <= 10) {
+    //     std::string move = game.playOpeningMove(argc, argv);
+    //     std::cout << move << std::endl;
+    // }
+    // std::cout << openings.getMove(board) << std::endl;
+
     run_perft_tests();
 
     // DEBUGGING: to debug move generation in details at higher depths
@@ -36,7 +47,9 @@ int main(int argc, char **argv) {
 int main(int argc, char **argv) {
 
     Board board;
-    Game game(board); 
+    Openings openings("openings.txt");
+    Game game(board, &openings);
+
 
     // TOKEEP: for Visual Studio debugging
     // int fargc = 5;
@@ -48,15 +61,33 @@ int main(int argc, char **argv) {
     parser.parseArgs();
     parser.parseHistory();
     
-    BitMoveVec moves = board.get_all_legal_moves();
+    //TODO: integrate this to the rest of the search logic
+    if (board.ply <= 20) {
+        std::cout << "Opening move :" << std::endl;
+        std::string move = game.playOpeningMove(argc, argv);
+        if (!move.empty()) {
+            parser.writeNextMove(move);
+            return 0;
+        }
+    }
+    
+    // BitMoveVec moves = board.get_all_legal_moves();
     // NICEDEBUG // std::cout << board << moves << std::endl;
-    int bestMove = -1;
+
+    U64 bestMove = -1;
+
     std::cout << "starting search..." << std::endl;
-    // game.search_random(bestMove);
-    // game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
-    game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, (board.turn == W) ? -99999 : 99999, -99999, 99999);
+
+    // to avoid cases where bestMove stays = -1 after alpha-beta search (when all possible moves have negative scores)
+    
+    game.search_random(bestMove);
+    // int score = game.search_best_minimax(bestMove, MAX_ALPHA_BETA_DEPTH);
+    int score = game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
+    // int score = game.search_negamax_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
+    
+    std::cout << "info score depth " << MAX_ALPHA_BETA_DEPTH << " score " << score << std::endl;
     if (bestMove == -1) Util::exitError("no move found here in main !!");
-    // game.search_negamax_alpha_beta(MAX_ALPHA_BETA_DEPTH, 0, 99999, -99999);
+
     // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
     // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
     // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
@@ -74,13 +105,6 @@ int main(int argc, char **argv) {
     //           << std::endl;
     std::cout << "how i see the board before writing next move: " << board;
     parser.writeNextMove(BitMove(bestMove).get_algebraic_notation());
-
-    // TODO: check correct parser output
-    // TODO: crucial: check that we always have a move to play
-    // int rand_int = rand() % moves.size();
-    // // std::cout << moves[rand_int] << std::endl;
-    // // parser.writeNextMove(moves[rand_int]);
-    // Chess.my_board.display();
 
     return 0;
 }
