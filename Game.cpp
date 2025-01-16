@@ -223,6 +223,12 @@ double Game::evaluate_piece(Piece* piece) {
         case bishop:
             p_evaluation -= piece_values[2] + bishop_table[7 - y][x];
             break;
+        case ROOK:
+            p_evaluation += piece_values[3] + rook_table[y][x];
+            break;
+        case rook:
+            p_evaluation -= piece_values[3] + rook_table[7 - y][x];
+            break;
     }
 
 	return p_evaluation;
