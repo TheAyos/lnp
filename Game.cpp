@@ -241,6 +241,8 @@ double Game::evaluate_piece(Piece* piece) {
         case king:
             p_evaluation -= piece_values[5] + king_table[7 - y][x];
             break;
+        default:
+            break; // No piece
     }
 
 	return p_evaluation;
