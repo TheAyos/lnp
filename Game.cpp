@@ -122,6 +122,14 @@ double Game::evaluate(){
 
 double Game::evaluate_piece(Piece* piece) {
     if (piece == NOPIECE) return 0.0;
+
+
+    const char* pos = sq_to_coord(square);
+
+    int x = pos[0] - 'a';
+
+    int y = 8 - (pos[1] - '0');
+    
     double p_evaluation = 0;
 	return p_evaluation;
 }
