@@ -117,6 +117,15 @@ int Game::search_best_alpha_beta(int depth, int t, int prev_eval, int alpha, int
 
 double Game::evaluate(){
 	double evaluation = 0;
+
+
+    for (int i = 0; i < 64; ++i) { // iterate over all the squares
+        int piece = board.get_piece_on_square(i); // and  dget the piece type on each thiss squares
+        if (piece != NOPIECE) { 
+            evaluation += evaluate_piece(piece, i); 
+        }
+    }
+
 	return evaluation;
 }
 
