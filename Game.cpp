@@ -217,7 +217,12 @@ double Game::evaluate_piece(Piece* piece) {
         case knight:
             p_evaluation -= piece_values[1] + knight_table[7 - y][x];
             break;
-
+        case BISHOP:
+            p_evaluation += piece_values[2] + bishop_table[y][x];
+            break;
+        case bishop:
+            p_evaluation -= piece_values[2] + bishop_table[7 - y][x];
+            break;
     }
 
 	return p_evaluation;
