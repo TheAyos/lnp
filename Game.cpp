@@ -205,6 +205,7 @@ int Game::search_best_alpha_beta(U64& bestMove,
     return bestValue;
 }
 
+
 int Game::quiescence_search(int alpha, int beta, std::chrono::time_point<std::chrono::high_resolution_clock> end) {
     auto now = std::chrono::high_resolution_clock::now();
     if (now >= end) {
