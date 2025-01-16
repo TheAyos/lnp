@@ -208,6 +208,9 @@ double Game::evaluate_piece(Piece* piece) {
         case PAWN:
             p_evaluation += piece_values[0] + pawn_table[y][x];
             break;
+        case pawn:
+            p_evaluation -= piece_values[0] + pawn_table[7 - y][x];
+            break;
 
     }
 
