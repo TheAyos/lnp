@@ -1,15 +1,21 @@
 #include "Board.h"
-#define MAX_ALPHA_BETA_DEPTH 4
+#include "Openings.h"
+#include "Parser.h"
+#define MAX_ALPHA_BETA_DEPTH 5
 
-struct Game {
-	Board my_board;
-	int turn;
-	std::string my_move;
-	Game();
+class Game {
+   public:
+    Board& board;
+    BitMove *bestMove;
+    Openings *openings;
 
-    double search_best(int depth, int t, double prev_eval);
-	double evaluate();
-	double evaluate_piece(Piece* piece); 
-	int search(int depth, int t);
-	int search_best_alpha_beta(int depth, int t, int prev_eval, int alpha, int beta);
+    Game(Board& board, Openings *openings);
+
+    /* -------------------------- search and evaluation ------------------------- */
+    int evaluate();
+    int evaluate_piece(int piece, int square);
+    void search_random(int& bestMove);
+    int search_best_alpha_beta(int& bestMove, int depth, int prev_eval, int alpha, int beta);
+    // int search_negamax_alpha_beta(BitMove* bestMove, int depth, int alpha, int beta);
+    std::string playOpeningMove(int argc, char **argv);
 };
