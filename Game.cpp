@@ -121,8 +121,8 @@ double Game::evaluate(){
 }
 
 double Game::evaluate_piece(Piece* piece) {
-	double p_evaluation = 0;
-
+    if (piece == NOPIECE) return 0.0;
+    double p_evaluation = 0;
 	return p_evaluation;
 }
 
