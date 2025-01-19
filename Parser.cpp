@@ -70,7 +70,7 @@ void Parser::parseHistory() {
                       << promotion_piece << std::endl;
 
         BitMove line_move = parse_algebraic_move(from_square, to_square, promotion_piece);
-        board.move(line_move, false);
+        board.make_move(line_move);
 
         if (DEBUG) std::cout << "ep::" << board.enpassantSquare << ", prom_piece:" << promotion_piece << std::endl;
         // if (DEBUG) std::cout << board;

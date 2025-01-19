@@ -2,8 +2,11 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
+#include <ctime>
 
 Openings::Openings(const std::string &filePath) {
+    srand(time(0)); // seed the random number generator
     loadOpenings(filePath);
 }
 
@@ -76,6 +79,14 @@ void Openings::loadOpenings(const std::string& filePath) {
 
     }
     file.close();
+    // // debug print the contents of the openings map
+    // for (const auto& entry : openings) {
+    //     std::cout << "FEN: " << entry.first << " Moves: ";
+    //     for (const auto& move : entry.second) {
+    //         std::cout << move << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 }
 
 /*

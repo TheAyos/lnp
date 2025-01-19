@@ -23,7 +23,7 @@ namespace Pawn {
         return attacks;
     };
 
-    void add_legal_moves(Board &board, BitMoveVec &moves) {
+    void add_legal_moves(Board &board, BitMoveVec &moves, bool onlyCaptures) {
         int turn = board.turn;
         U64 bb, attacks;  // TODO: replace while by iterator on BB
 
@@ -40,22 +40,24 @@ namespace Pawn {
             // pawn attacks at least one square ahead
             to = (turn == W) ? from - 8 : from + 8;
 
-            // if not on first/last rank (i.e. if pawn can move forward)
-            if (((turn == W && !(to < a8)) || (turn == B && !(to > h1))) && !get_bit(board.occupancies[WB], to)) {
-                // pawn promotion placement
-                if ((turn == W && from >= a7 && from <= h7) || (turn == B && from >= a2 && from <= h2)) {
-                    // QUEEN is white, if turn is black (turn = 1), then QUEEN + 6*1 is queen (black)
-                    board.add_move_if_legal(moves,  BitMove(from, to, piece, QUEEN + 6 * turn, false, false, false, false));
-                    board.add_move_if_legal(moves,  BitMove(from, to, piece, ROOK + 6 * turn, false, false, false, false));  //...
-                    board.add_move_if_legal(moves,  BitMove(from, to, piece, BISHOP + 6 * turn, false, false, false, false));
-                    board.add_move_if_legal(moves,  BitMove(from, to, piece, KNIGHT + 6 * turn, false, false, false, false));
-                } else {  // "normal" pawn moves
-                    board.add_move_if_legal(moves,  BitMove(from, to, piece, NO_PROMOTION, false, false, false, false));
-                    // double pawn push position and two squares ahead is free
-                    if (((turn == W && from >= a2 && from <= h2) || turn == B && from >= a7 && from <= h7)
-                        && !get_bit(board.occupancies[WB], turn == W ? to - 8 : to + 8)) {
-                        board.add_move_if_legal(moves,  
-                            BitMove(from, turn == W ? to - 8 : to + 8, piece, NO_PROMOTION, false, true, false, false));
+            if (!onlyCaptures) {
+                // if not on first/last rank (i.e. if pawn can move forward)
+                if (((turn == W && !(to < a8)) || (turn == B && !(to > h1))) && !get_bit(board.occupancies[WB], to)) {
+                    // pawn promotion placement
+                    if ((turn == W && from >= a7 && from <= h7) || (turn == B && from >= a2 && from <= h2)) {
+                        // QUEEN is white, if turn is black (turn = 1), then QUEEN + 6*1 is queen (black)
+                        board.add_move_if_legal(moves,  BitMove(from, to, piece, QUEEN + 6 * turn, false, false, false, false));
+                        board.add_move_if_legal(moves,  BitMove(from, to, piece, ROOK + 6 * turn, false, false, false, false));  //...
+                        board.add_move_if_legal(moves,  BitMove(from, to, piece, BISHOP + 6 * turn, false, false, false, false));
+                        board.add_move_if_legal(moves,  BitMove(from, to, piece, KNIGHT + 6 * turn, false, false, false, false));
+                    } else {  // "normal" pawn moves
+                        board.add_move_if_legal(moves,  BitMove(from, to, piece, NO_PROMOTION, false, false, false, false));
+                        // double pawn push position and two squares ahead is free
+                        if (((turn == W && from >= a2 && from <= h2) || turn == B && from >= a7 && from <= h7)
+                            && !get_bit(board.occupancies[WB], turn == W ? to - 8 : to + 8)) {
+                            board.add_move_if_legal(moves,  
+                                BitMove(from, turn == W ? to - 8 : to + 8, piece, NO_PROMOTION, false, true, false, false));
+                        }
                     }
                 }
             }

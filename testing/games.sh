@@ -2,7 +2,7 @@
 # small bash script to run multiple games and count the results :)
 
 # command="chessGame -W ./build/logic-and-proofs -B chessDeterministicPlayer"
-#command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
+#command="chessGame -B ./build/logic-and-proofs -W chessRandomPlayer"
 command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
 
 if [ -z "$1" ]; then

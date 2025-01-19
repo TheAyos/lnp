@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "BitMove.h"
-#include "BitOps.h"
 #include "Board.h"
 #include "Definitions.h"
 
@@ -17,6 +16,23 @@ Game::Game(Board& board, Openings* openings) : board(board), openings(openings),
 /* -------------------------------------------------------------------------- */
 /*                search and evaluation (i.e. actually playing)               */
 /* -------------------------------------------------------------------------- */
+
+U64 Game::search() {
+    U64 bestMove = 0;
+    // int score = game.search_best_minimax(bestMove, MAX_ALPHA_BETA_DEPTH);
+    // int score = game.search_negamax_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -INFTY, INFTY);
+    int score = search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -INFTY, INFTY);
+
+    if (bestMove == 0) {
+        // to avoid cases where bestMove stays null after alpha-beta search (when all possible moves have negative
+        // scores)
+        std::cout << "[GAME::SEARCH] no move found, fallback to random" << std::endl;
+        search_random(bestMove);
+    }
+
+    std::cout << "info score depth " << MAX_ALPHA_BETA_DEPTH << " score " << score << std::endl;
+    return bestMove;
+}
 
 // TOKEEP: for debugging purposes
 void Game::search_random(U64& bestMove) {
@@ -82,13 +98,13 @@ int Game::search_best_minimax(U64& bestMove, int depth) {
     }
     nodes_searched++;
 
-    int bestValue = (board.turn == W) ? -99999 : 99999;
+    int bestValue = (board.turn == W) ? -INFTY : INFTY;
     BitMoveVec moves = board.get_all_legal_moves();
-    
+
     for (const auto& move : moves) {
         BoardState savedState(board);
-        if (board.move(move) == -1) continue;
-        
+        if (board.make_move(move) == -1) continue;
+
         int score = search_best_minimax(bestMove, depth - 1);
         savedState.reapply(board);
 
@@ -99,7 +115,7 @@ int Game::search_best_minimax(U64& bestMove, int depth) {
                     bestMove = move.get_bit_repr();
                 }
             }
-        } else {  // Minimizing player 
+        } else {  // Minimizing player
             if (score < bestValue) {
                 bestValue = score;
                 if (depth == MAX_ALPHA_BETA_DEPTH) {
@@ -118,6 +134,7 @@ int Game::search_best_minimax(U64& bestMove, int depth) {
 }
 
 int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) {
+    // if (depth == 0) return quiescence_search(alpha, beta);
     if (depth == 0) return evaluate();
 
     static long nodes_searched;
@@ -126,14 +143,14 @@ int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) 
     }
     nodes_searched++;
 
-    int bestValue = (board.turn == W) ? -99999 : 99999;
+    int bestValue = (board.turn == W) ? -INFTY : INFTY;
     int score = 0;
 
     BitMoveVec moves = board.get_all_legal_moves();
     for (const auto& move : moves) {
 
         BoardState savedState(board);
-        board.move(move);
+        board.make_move(move);
         score = search_best_alpha_beta(bestMove, depth - 1, alpha, beta);
         savedState.reapply(board);
 
@@ -171,6 +188,24 @@ int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) 
     return bestValue;
 }
 
+int Game::quiescence_search(int alpha, int beta) {
+    int eval = evaluate();
+    if (eval >= beta) return beta;
+    if (alpha < eval) alpha = eval;
+
+    BitMoveVec captures = board.get_capture_moves();
+    for (const auto& move : captures) {
+        BoardState savedState(board);
+        board.make_move(move);
+        int score = -quiescence_search(-beta, -alpha);
+        savedState.reapply(board);
+
+        if (score >= beta) return beta;
+        if (score > alpha) alpha = score;
+    }
+
+    return alpha;
+}
 
 int Game::evaluate() {
     int evaluation = 0;
@@ -184,83 +219,17 @@ int Game::evaluate() {
     if (board.is_attacked(board.find_king(W), B)) {
         evaluation -= 50;
         BitMoveVec moves = board.get_all_legal_moves();
-        if (moves.size() == 0) return -99999;
+        if (moves.size() == 0) return -INFTY;
 
     } else if (board.is_attacked(board.find_king(B), W)) {  // if white checks black
         evaluation += 50;
         BitMoveVec moves = board.get_all_legal_moves();
-        if (moves.size() == 0) return 99999;
+        if (moves.size() == 0) return INFTY;
     }
     return evaluation;
 }
 
 int Game::evaluate_piece(int piece, int rank, int file) {
-    	static const int pawn_table[8][8] = {
-	    {  0,  0,  0,  0,  0,  0,  0,  0 },
-	    { 50, 50, 50, 50, 50, 50, 50, 50 },
-	    { 10, 10, 20, 30, 30, 20, 10, 10 },
-	    {  5,  5, 10, 25, 25, 10,  5,  5 },
-	    {  0,  0,  0, 20, 20,  0,  0,  0 },
-	    {  5, -5, -10,  0,  0, -10, -5,  5 },
-	    {  5, 10, 10, -20, -20, 10, 10,  5 },
-	    {  0,  0,  0,  0,  0,  0,  0,  0 }
-	};
-	
-	static const int knight_table[8][8] = {
-	    { -50, -40, -30, -30, -30, -30, -40, -50 },
-	    { -40, -20,   0,   0,   0,   0, -20, -40 },
-	    { -30,   0,  10,  15,  15,  10,   0, -30 },
-	    { -30,   5,  15,  20,  20,  15,   5, -30 },
-	    { -30,   0,  15,  20,  20,  15,   0, -30 },
-	    { -30,   5,  10,  15,  15,  10,   5, -30 },
-	    { -40, -20,   0,   5,   5,   0, -20, -40 },
-	    { -50, -40, -30, -30, -30, -30, -40, -50 }
-	};
-
-	static const int bishop_table[8][8] = {
-	    { -20, -10, -10, -10, -10, -10, -10, -20 },
-	    { -10,   0,   0,   0,   0,   0,   0, -10 },
-	    { -10,   0,   5,  10,  10,   5,   0, -10 },
-	    { -10,   5,   5,  10,  10,   5,   5, -10 },
-	    { -10,   0,  10,  10,  10,  10,   0, -10 },
-	    { -10,  10,  10,  10,  10,  10,  10, -10 },
-	    { -10,   5,   0,   0,   0,   0,   5, -10 },
-	    { -20, -10, -10, -10, -10, -10, -10, -20 }
-	};
-
-	static const int rook_table[8][8] = {
-	    {  0,  0,  0,  0,  0,  0,  0,  0 },
-	    {  5, 10, 10, 10, 10, 10, 10,  5 },
-	    { -5,  0,  0,  0,  0,  0,  0, -5 },
-	    { -5,  0,  0,  0,  0,  0,  0, -5 },
-	    { -5,  0,  0,  0,  0,  0,  0, -5 },
-	    { -5,  0,  0,  0,  0,  0,  0, -5 },
-	    {  5, 10, 10, 10, 10, 10, 10,  5 },
-	    {  0,  0,  0,  5,  5,  0,  0,  0 }
-	};
-
-	static const int queen_table[8][8] = {
-	    { -20, -10, -10,  -5,  -5, -10, -10, -20 },
-	    { -10,   0,   0,   0,   0,   0,   0, -10 },
-	    { -10,   0,   5,   5,   5,   5,   0, -10 },
-	    {  -5,   0,   5,   5,   5,   5,   0,  -5 },
-	    {   0,   0,   5,   5,   5,   5,   0,  -5 },
-	    { -10,   5,   5,   5,   5,   5,   0, -10 },
-	    { -10,   0,   5,   0,   0,   0,   0, -10 },
-	    { -20, -10, -10,  -5,  -5, -10, -10, -20 }
-	};
-
-	static const int king_table[8][8] = {
-	    { -30, -40, -40, -50, -50, -40, -40, -30 },
-        { -30, -40, -40, -50, -50, -40, -40, -30 },
-        { -30, -40, -40, -50, -50, -40, -40, -30 },
-        { -30, -40, -40, -50, -50, -40, -40, -30 },
-        { -20, -30, -30, -40, -40, -30, -30, -20 },
-        { -10, -20, -20, -20, -20, -20, -20, -10 },
-        {  20,  20,   0,   0,   0,   0,  20,  20 },
-        {  20,  30,  10,   0,   0,  10,  30,  20 }
-	};
-
     if (piece == 12) return 0;
     int piecetype = piece % 6;
     int color = (piece > 5) ? 0 : 1;
@@ -289,7 +258,11 @@ std::string Game::playOpeningMove(int argc, char** argv) {
         Parser parser(board, argc, argv);
         BitMove bestMove = parser.parse_algebraic_move(
             coord_to_sq(bestMoveStr.substr(0, 2)), coord_to_sq(bestMoveStr.substr(2, 2)), ' ');
-        board.move(bestMove);  // playing opening move
+        // check legality of opening move
+        std::cout << bestMoveStr << std::endl;
+        std::cout << bestMoveStr << std::endl;
+        std::cout << bestMoveStr << std::endl;
+        board.make_move(bestMove);
         return bestMove.get_algebraic_notation();
     }
     return "";

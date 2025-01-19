@@ -21,25 +21,27 @@ using namespace BitOps;
 /* -------------------------------------------------------------------------- */
 
 // starting FEN position
-Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"){
+Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
     for (int i = 4; i < 8; i++)
         for (int j = 0; j < 8; j++) {
-            int idx = i*8+j;
+            int idx = i * 8 + j;
             if (i == 7) {
                 if (j == 0 || j == 7) pieceOnSquare[idx] = 3;
                 if (j == 1 || j == 6) pieceOnSquare[idx] = 1;
                 if (j == 2 || j == 5) pieceOnSquare[idx] = 2;
                 if (j == 3) pieceOnSquare[idx] = 4;
                 if (j == 4) pieceOnSquare[idx] = 5;
-            }
-            else if (i == 6) pieceOnSquare[idx] = 0;
-            else pieceOnSquare[idx] = 12;
+            } else if (i == 6)
+                pieceOnSquare[idx] = 0;
+            else
+                pieceOnSquare[idx] = 12;
 
-            int ridx = (7-i)*8+j;
-            if (i >= 6) pieceOnSquare[ridx] = pieceOnSquare[idx]+6;
-            else pieceOnSquare[ridx] = 12;
+            int ridx = (7 - i) * 8 + j;
+            if (i >= 6)
+                pieceOnSquare[ridx] = pieceOnSquare[idx] + 6;
+            else
+                pieceOnSquare[ridx] = 12;
         }
-
 };
 
 // TODO: FIXME: OPTI: fixcpcpcpc
@@ -132,8 +134,8 @@ void Board::clear_board() {
     ply = 0;
     enpassantSquare = -1;
     castlingRights = 0;
-    for (int i = 0; i < 64; i++) pieceOnSquare[i] = 12;
-    
+    for (int i = 0; i < 64; i++)
+        pieceOnSquare[i] = 12;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -206,25 +208,37 @@ int Board::find_king(int color) {
     return get_lsb_index(bitboards[get_color_piece(KING, color)]);
 }
 
+bool Board::playerInCheck(int color) {
+    return is_attacked(find_king(color), 1 - color);
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                move parsing                                */
 /* -------------------------------------------------------------------------- */
 
 #define DEBUG 0
 
-int Board::move(const BitMove &move, bool justCheckCheck) {
+int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture) {
+
+    if (onlyCapture) {
+        if (move.get_capture())
+            make_move(move, justCheckCheck, false);
+        else
+            return 0;
+    }
+
     // OPTI: explore using stacks OR making an unmake_move function for undoing moves
     // save board state for potential undo at end of function
     BoardState savedState(*this);
 
     int from = move.get_from();
     int to = move.get_to();
-    
-    int captured = to; 
-    // std::cout << pieceOnSquare[from] << std::endl;    
+
+    int captured = to;
+    // std::cout << pieceOnSquare[from] << std::endl;
     pieceOnSquare[to] = pieceOnSquare[from];
     pieceOnSquare[from] = 12;
-    
+
     if (DEBUG)
         std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to)
                   << letter_pieces[move.get_promotion_piece()] << std::endl;
@@ -245,14 +259,13 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     /* ------------------------------- en passant ------------------------------- */
     if (move.get_enpassant()) {
-	if (turn == W) {
-	    clear_bit(bitboards[pawn], to + 8);
-	    pieceOnSquare[to+8] = 12;
-	}
-	else {
-	    clear_bit(bitboards[PAWN], to - 8);
-	    pieceOnSquare[to-8] = 12;
-	}
+        if (turn == W) {
+            clear_bit(bitboards[pawn], to + 8);
+            pieceOnSquare[to + 8] = 12;
+        } else {
+            clear_bit(bitboards[PAWN], to - 8);
+            pieceOnSquare[to - 8] = 12;
+        }
     }
 
     // a move is made, reset previous enpassant
@@ -265,30 +278,34 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     if (move.get_promotion_piece()) {
         clear_bit(bitboards[get_color_piece(PAWN, turn)], to);
         set_bit(bitboards[get_color_piece(move.get_promotion_piece(), turn)], to);
-       	
-        pieceOnSquare[to] = get_color_piece(move.get_promotion_piece(), turn);	
+
+        pieceOnSquare[to] = get_color_piece(move.get_promotion_piece(), turn);
     }
 
     /* ------------------------------ king castling ----------------------------- */
     if (move.get_castling()) {
         // handle castling according to the castling type (in order: WK, WQ, BK, BQ)
         switch (to) {
-            case g1: move_bit(bitboards[ROOK], h1, f1); 
-		     pieceOnSquare[61] = pieceOnSquare[63];
-		     pieceOnSquare[63] = 12;		     
-		     break;
-            case c1: move_bit(bitboards[ROOK], a1, d1);
-		     pieceOnSquare[59] = pieceOnSquare[56];
-		     pieceOnSquare[56] = 12;
-		     break;
-            case g8: move_bit(bitboards[rook], h8, f8);
-		     pieceOnSquare[5] = pieceOnSquare[7];
-		     pieceOnSquare[7] = 12;
-		     break;
-            case c8: move_bit(bitboards[rook], a8, d8);
-		     pieceOnSquare[3] = pieceOnSquare[0];
-		     pieceOnSquare[0] = 12;
-		     break;
+            case g1:
+                move_bit(bitboards[ROOK], h1, f1);
+                pieceOnSquare[61] = pieceOnSquare[63];
+                pieceOnSquare[63] = 12;
+                break;
+            case c1:
+                move_bit(bitboards[ROOK], a1, d1);
+                pieceOnSquare[59] = pieceOnSquare[56];
+                pieceOnSquare[56] = 12;
+                break;
+            case g8:
+                move_bit(bitboards[rook], h8, f8);
+                pieceOnSquare[5] = pieceOnSquare[7];
+                pieceOnSquare[7] = 12;
+                break;
+            case c8:
+                move_bit(bitboards[rook], a8, d8);
+                pieceOnSquare[3] = pieceOnSquare[0];
+                pieceOnSquare[0] = 12;
+                break;
         }
     }
 
@@ -309,7 +326,7 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
     // std::cout << is_attacked(BitOps::get_lsb_index(bitboards[player == W ? KING : king]), enemy) << std::endl;
     if (DEBUG) std::cout << *this;
 
-    if (is_attacked(find_king(player), enemy)) {
+    if (playerInCheck(player)) {
         if (DEBUG)
             std::cout << "[Board::move] INVALID MOVE, " << ((player == W) ? "WHITE" : "BLACK")
                       << " KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to) << std::endl;
@@ -319,7 +336,7 @@ int Board::move(const BitMove &move, bool justCheckCheck) {
 
     // restore board state if we only wanted to check for checks and not apply the move
     if (justCheckCheck) savedState.reapply(*this);
-   
+
     return 0;  // legal
 }
 
@@ -344,7 +361,7 @@ bool Board::is_attacked(int sq, int by_color) {
 }
 
 void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
-    int moveLeadsToCheck = move(m, true);
+    int moveLeadsToCheck = make_move(m, true);
     if (!moveLeadsToCheck) moveVec.push_back(m);
 };
 
@@ -365,6 +382,20 @@ BitMoveVec Board::get_all_legal_moves() {
     return moves;
 }
 
+BitMoveVec Board::get_capture_moves() {
+    BitMoveVec captureMoves;
+    captureMoves.reserve(256);
+
+    Pawn::add_legal_moves(*this, captureMoves, true);
+    Knight::add_legal_moves(*this, captureMoves, true);
+    Bishop::add_legal_moves(*this, captureMoves, true);
+    Rook::add_legal_moves(*this, captureMoves, true);
+    Queen::add_legal_moves(*this, captureMoves, true);
+    King::add_legal_moves(*this, captureMoves, true);
+
+    return captureMoves;
+}
+
 void Board::perftree(int depth) {
     BitMoveVec moves = get_all_legal_moves();
     long long totalNodes = 0;
@@ -373,7 +404,7 @@ void Board::perftree(int depth) {
     for (const BitMove &mv : moves) {
 
         BoardState savedState(*this);
-        if (move(mv) == -1) continue;
+        if (make_move(mv) == -1) continue;
         long nodes = perft_search(depth - 1);
         savedState.reapply(*this);
 
@@ -425,16 +456,15 @@ long Board::perft_search(int depth) {
         //     }
         // }
 
-        if (move(mv) == -1) continue;
+        if (make_move(mv) == -1) continue;
 
-	/*
-    	std::cout << mv.get_piece() << std::endl;
-    	std::cout << pieceOnSquare[mv.get_to()] << std::endl << "--" << std::endl;
-    	std::cout << mv.get_from() << " " << mv.get_to()  << std::endl;
-    	std::cout << *this << std::endl; 
-	*/
-    	// assert(pieceOnSquare[mv.get_to()] == mv.get_piece());	
-
+        /*
+            std::cout << mv.get_piece() << std::endl;
+            std::cout << pieceOnSquare[mv.get_to()] << std::endl << "--" << std::endl;
+            std::cout << mv.get_from() << " " << mv.get_to()  << std::endl;
+            std::cout << *this << std::endl;
+        */
+        // assert(pieceOnSquare[mv.get_to()] == mv.get_piece());
 
         res += perft_search(depth - 1);
 
@@ -446,38 +476,36 @@ long Board::perft_search(int depth) {
 std::string Board::getFEN() {
     std::string fen;
 
-    //for each square
-    for (int rank = 0; rank < 8; ++rank) { 
-        int emptySquares = 0; 
+    // for each square
+    for (int rank = 0; rank < 8; ++rank) {
+        int emptySquares = 0;
         for (int file = 0; file < 8; ++file) {
-            int square = rf_to_square(rank, file);  
-            int piece = get_piece_on_square(square); 
-            //we get the piece
+            int square = rf_to_square(rank, file);
+            int piece = get_piece_on_square(square);
+            // we get the piece
 
-            if (piece == -1) { 
-                ++emptySquares; //counter for empty squares
+            if (piece == -1) {
+                ++emptySquares;  // counter for empty squares
             } else {
-                if (emptySquares > 0) { 
+                if (emptySquares > 0) {
                     fen += std::to_string(emptySquares);
                     emptySquares = 0;
                 }
                 fen += letter_pieces[get_color_piece(piece, piece >= PAWN && piece <= KING ? W : B)];
             }
         }
-        if (emptySquares > 0) fen += std::to_string(emptySquares); 
-        if (rank < 7) fen += "/"; 
+        if (emptySquares > 0) fen += std::to_string(emptySquares);
+        if (rank < 7) fen += "/";
     }
 
-    //turn
+    // turn
     fen += (turn == W ? " w " : " b ");
-    //castling
-    fen += (castlingRights == 0 ? "-" : 
-        (std::string(castlingRights & WK ? "K" : "") +
-         std::string(castlingRights & WQ ? "Q" : "") +
-         std::string(castlingRights & BK ? "k" : "") +
-         std::string(castlingRights & BQ ? "q" : "")));    
+    // castling
+    fen += (castlingRights == 0
+                ? "-"
+                : (std::string(castlingRights & WK ? "K" : "") + std::string(castlingRights & WQ ? "Q" : "")
+                   + std::string(castlingRights & BK ? "k" : "") + std::string(castlingRights & BQ ? "q" : "")));
 
     std::cout << "the actual fen is : " << fen << std::endl;
     return fen;
 }
-

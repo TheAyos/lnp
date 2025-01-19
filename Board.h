@@ -69,13 +69,16 @@ class Board {
     // find the square of the king of given color
     int find_king(int color);
 
+    // returns true if given color's king is attacked by opponent
+    bool playerInCheck(int color);
+
     /* ------------------------------ move parsing ------------------------------ */
 
     // makes a move on the board, handling special moves (captures, promotions, enpassant, castling, etc.) and updating
     // board state properly (turn, occupancies, etc.)
     // return -1 if move is illegal, 0 otherwise
     // set justCheckCheck to true to not alter board state and just check for checks
-    int move(const BitMove &move, bool justCheckCheck = false);
+    int make_move(const BitMove &move, bool justCheckCheck = false, bool onlyCapture = false);
 
     /* ----------------------------- attack-related ----------------------------- */
 
@@ -92,6 +95,9 @@ class Board {
 
     // generate all legal moves for the current board configuration, using the bitpieces/* functions
     BitMoveVec get_all_legal_moves();
+
+    // generate capture moves only (useful for quiescence search)
+    BitMoveVec get_capture_moves();
 
     // for debugging purposes, output to be compared with stockfish
     void perftree(int depth);

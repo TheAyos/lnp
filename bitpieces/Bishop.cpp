@@ -36,7 +36,7 @@ namespace Bishop {
         return attacks;
     }
 
-    void add_legal_moves(Board &board, BitMoveVec &moves) {
+    void add_legal_moves(Board &board, BitMoveVec &moves, bool onlyCaptures) {
         int turn = board.turn;
         U64 bb, attacks;
 
@@ -53,7 +53,9 @@ namespace Bishop {
                 int to = get_lsb_index(attacks);
 
                 bool isCapture = get_bit(board.occupancies[1 - turn], to);
-                board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+                if (!onlyCaptures || isCapture) {
+                    board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+                }
 
                 clear_bit(attacks, to);
             }

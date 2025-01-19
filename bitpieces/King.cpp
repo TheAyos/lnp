@@ -22,7 +22,7 @@ namespace King {
         return attacks;
     };
 
-    void add_legal_moves(Board &board, BitMoveVec &moves) {
+    void add_legal_moves(Board &board, BitMoveVec &moves, bool onlyCaptures) {
         int turn = board.turn;
         U64 bb, attacks;
 
@@ -44,9 +44,9 @@ namespace King {
                 // add only if not attacked by enemy
                 // moves.add_move_if_legal(
                 //     BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false), board);
-
-                board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
-
+                if (!onlyCaptures || isCapture) {
+                    board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+                }
 
                 clear_bit(attacks, to);
             }

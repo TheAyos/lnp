@@ -46,10 +46,10 @@ int main(int argc, char **argv) {
 #else
 int main(int argc, char **argv) {
 
+    // Board board ("r1bqkbnr/pppn1ppp/3p4/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R w KQkq ");// should randomly play f1c4 or b1c3 (from openings.txt)
     Board board;
     Openings openings("openings.txt");
     Game game(board, &openings);
-
 
     // TOKEEP: for Visual Studio debugging
     // int fargc = 5;
@@ -60,49 +60,22 @@ int main(int argc, char **argv) {
     Parser parser{board, argc, argv};
     parser.parseArgs();
     parser.parseHistory();
-    
+        
     //TODO: integrate this to the rest of the search logic
     if (board.ply <= 20) {
-        std::cout << "Opening move :" << std::endl;
-        std::string move = game.playOpeningMove(argc, argv);
-        if (!move.empty()) {
-            parser.writeNextMove(move);
+        std::string moveAlgebraicRepr = game.playOpeningMove(argc, argv);
+        std::cout << "Opening move :" << moveAlgebraicRepr << std::endl;
+        if (!moveAlgebraicRepr.empty()) {
+            parser.writeNextMove(moveAlgebraicRepr);
             return 0;
         }
-    }
-    
-    // BitMoveVec moves = board.get_all_legal_moves();
-    // NICEDEBUG // std::cout << board << moves << std::endl;
-
-    U64 bestMove = -1;
+    }    
 
     std::cout << "starting search..." << std::endl;
 
-    // to avoid cases where bestMove stays = -1 after alpha-beta search (when all possible moves have negative scores)
-    
-    game.search_random(bestMove);
-    // int score = game.search_best_minimax(bestMove, MAX_ALPHA_BETA_DEPTH);
-    int score = game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
-    // int score = game.search_negamax_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
-    
-    std::cout << "info score depth " << MAX_ALPHA_BETA_DEPTH << " score " << score << std::endl;
-    if (bestMove == -1) Util::exitError("no move found here in main !!");
+    U64 bestMove = game.search();
 
-    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
+    if (!bestMove) Util::exitError("no move found here in main !!");
     std::cout << "how i see the board before writing next move: " << board;
     parser.writeNextMove(BitMove(bestMove).get_algebraic_notation());
 

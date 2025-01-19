@@ -20,8 +20,12 @@ class Game {
     int evaluate_piece(int piece, int rank, int file);
     void search_random(U64& bestMove);
     int search_best_minimax(U64& bestMove, int depth);
-    int search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta);
     int search_negamax_alpha_beta(U64& bestMove, int depth, int alpha, int beta);
-    // int quiescence(U64& bestMove, int alpha, int beta);
+
     std::string playOpeningMove(int argc, char **argv);
+
+    U64 search();
+    int search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta);
+    // avoid horizon effect
+    int quiescence_search(int alpha, int beta);
 };

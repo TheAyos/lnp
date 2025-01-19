@@ -1,0 +1,4 @@
+scp -r ./ ayoub.agouzoul@x:~/BAOUE
+scp /usr/bin/chess* ayoub.agouzoul@x:~/BAOUE
+export PATH="./:$PATH" && nohup bash ./testing/games.sh 10 > output.log 2>&1 &
+to test on lab machines overnight
