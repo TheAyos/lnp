@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -10,29 +11,12 @@
 
 // FIXME: safety handling & find a better way of passing object instances
 // FIXME: invalid move to init
-Game::Game(Board& board, Openings* openings) : board(board), openings(openings), nSearchedNodes(0), bestMove(-1) {
+Game::Game(Board& board, Openings* openings) : board(board), openings(openings), nSearchedNodes(0), globalBestMove(-1) {
 }
 
 /* -------------------------------------------------------------------------- */
 /*                search and evaluation (i.e. actually playing)               */
 /* -------------------------------------------------------------------------- */
-
-U64 Game::search() {
-    U64 bestMove = 0;
-    // int score = game.search_best_minimax(bestMove, MAX_ALPHA_BETA_DEPTH);
-    // int score = game.search_negamax_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -INFTY, INFTY);
-    int score = search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -INFTY, INFTY);
-
-    if (bestMove == 0) {
-        // to avoid cases where bestMove stays null after alpha-beta search (when all possible moves have negative
-        // scores)
-        std::cout << "[GAME::SEARCH] no move found, fallback to random" << std::endl;
-        search_random(bestMove);
-    }
-
-    std::cout << "info score depth " << MAX_ALPHA_BETA_DEPTH << " score " << score << std::endl;
-    return bestMove;
-}
 
 // TOKEEP: for debugging purposes
 void Game::search_random(U64& bestMove) {
@@ -49,45 +33,6 @@ void Game::search_random(U64& bestMove) {
     //           << ", " << bestMove->get_algebraic_notation() << std::endl;
     std::cout << "[search_random]: " << BitMove(bestMove).get_algebraic_notation() << std::endl;
 }
-
-// WIP
-// int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) {
-//     // alpha is the best value that the maximizing player currently can guarantee
-//     // beta is the best value that the minimizing player currently can guarantee
-//     if (depth == 0) return evaluate();
-//     static long nodes_searched = 0;
-//     static int ply = 0;
-//     if (depth == MAX_ALPHA_BETA_DEPTH) nodes_searched = 0;
-//     nodes_searched++;
-
-//     int prevAlpha = alpha;
-//     BitMoveVec moves = board.get_all_legal_moves();
-//     int bestLocalMove = -1;
-
-//     for (BitMove& mv : moves) {
-
-//         BoardState savedState = BoardState(board);
-//         board.move(mv);
-//         int score = -search_best_alpha_beta(bestMove, depth - 1, -beta, -alpha);
-//         savedState.reapply(board);  // restore board state
-//         if (score >= beta) {
-//             return beta;
-//         }
-//         if (score > alpha) {
-//             alpha = score;
-//             if (depth == 0) bestLocalMove = mv.get_bit_repr();
-//         }
-//     }
-
-//     if (alpha != prevAlpha) {
-//         bestMove = bestLocalMove;  // BRUH
-//         std::cout << "Best move in search: " << BitMove(bestLocalMove).get_algebraic_notation() << std::endl;
-//         std::cout << "Total nodes searched: " << nodes_searched << std::endl;
-//     } else {
-//         std::cout << "No moves found" << std::endl;
-//     }
-//     return alpha;
-// }
 
 int Game::search_best_minimax(U64& bestMove, int depth) {
     if (depth == 0) return evaluate();
@@ -133,31 +78,99 @@ int Game::search_best_minimax(U64& bestMove, int depth) {
     return bestValue;
 }
 
-int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) {
-    // if (depth == 0) return quiescence_search(alpha, beta);
-    if (depth == 0) return evaluate();
+#define MAX_SEARCH_DEPTH 10
+#define MAX_SEARCH_TIME_S 9
+const bool DEBUG = false;
+
+#include <chrono>
+
+U64 Game::search(std::chrono::time_point<std::chrono::high_resolution_clock> start) {
+    globalBestMove = 0;
+    int score = 0;
+
+    auto end = start + std::chrono::seconds(MAX_SEARCH_TIME_S);  // time constraint
+    auto endSafe = start + std::chrono::seconds(MAX_SEARCH_TIME_S);  // time constraint
+
+    // iterative deepening
+    for (int depth = 1; depth <= MAX_SEARCH_DEPTH; depth++) {
+        auto now = std::chrono::high_resolution_clock::now();
+        if (now >= end) {
+            if (DEBUG)
+                std::cout << "[GAME::SEARCH] Time ! stopping search at depth " << depth - 1 << std::endl;
+            break;
+        }
+
+        U64 localBestMove = 0;
+        score = search_best_alpha_beta(localBestMove, depth, depth, -INFTY, INFTY, end);
+        now = std::chrono::high_resolution_clock::now();
+        // search done in time, can set new best move
+        if (now < end) {
+            std::cout << "done search in time, setting new best " << BitMove(localBestMove).get_algebraic_notation() << std::endl;
+            globalBestMove = localBestMove;
+        }
+
+        if (globalBestMove == 0) {
+            if (DEBUG) std::cout << "[GAME::SEARCH] no move found, fallback to random" << std::endl;
+            search_random(globalBestMove);
+        }
+
+        if (DEBUG) std::cout << "[INFO] depth " << depth << " score " << score << std::endl;
+    }
+
+    return globalBestMove;
+}
+
+int Game::search_best_alpha_beta(U64& bestMove,
+                                 int initial_depth,
+                                 int depth,
+                                 int alpha,
+                                 int beta,
+                                 std::chrono::time_point<std::chrono::high_resolution_clock> end) {
+    auto now = std::chrono::high_resolution_clock::now();
+    if (now >= end) {
+        if (DEBUG)
+            std::cout << "[GAME::SEARCH_A_B] Time ! return from search at depth " << depth << std::endl;
+        return (board.turn == W) ? -INFTY : INFTY;  // time limit is reached, do not update bestMove
+    }
+    if (depth == 0) return quiescence_search(alpha, beta, end);
+    // if (depth == 0) return evaluate();
 
     static long nodes_searched;
-    if (depth == MAX_ALPHA_BETA_DEPTH) {
+    if (depth == initial_depth) {
         nodes_searched = 0;  // reset at start of new search
     }
     nodes_searched++;
 
     int bestValue = (board.turn == W) ? -INFTY : INFTY;
     int score = 0;
+    // U64 localBestMove = 0;
 
     BitMoveVec moves = board.get_all_legal_moves();
-    for (const auto& move : moves) {
 
+    /* ------------------------------ move ordering ----------------------------- */
+    // move last best move to the front
+    if (initial_depth == depth && globalBestMove != 0) {
+        auto it = std::find_if(moves.begin(), moves.end(), [&](const BitMove& move) {
+            return move.get_bit_repr() == globalBestMove;
+        });
+        if (it != moves.end()) {
+            std::iter_swap(moves.begin(), it);
+        }
+    }
+    /* ------------------------------ move ordering ----------------------------- */
+
+    for (const auto& move : moves) {
         BoardState savedState(board);
         board.make_move(move);
-        score = search_best_alpha_beta(bestMove, depth - 1, alpha, beta);
+        // score = search_best_alpha_beta(tempBestMove, initial_depth, depth - 1, alpha, beta, end);
+        score = search_best_alpha_beta(bestMove, initial_depth, depth - 1, alpha, beta, end);
+        if (now >= end) return (board.turn == W) ? -INFTY : INFTY;  // time limit is reached
         savedState.reapply(board);
 
         if (board.turn == W) {  // maximizing player
             if (score > bestValue) {
                 bestValue = score;
-                if (depth == MAX_ALPHA_BETA_DEPTH) {
+                if (depth == initial_depth) {
                     bestMove = move.get_bit_repr();
                 }
                 if (score > alpha) {
@@ -167,7 +180,7 @@ int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) 
         } else {  // minimizing player
             if (score < bestValue) {
                 bestValue = score;
-                if (depth == MAX_ALPHA_BETA_DEPTH) {
+                if (depth == initial_depth) {
                     bestMove = move.get_bit_repr();
                 }
                 if (score < beta) {
@@ -179,16 +192,26 @@ int Game::search_best_alpha_beta(U64& bestMove, int depth, int alpha, int beta) 
         if (beta <= alpha) break;  // alpha-beta pruning
     }
 
-    if (depth == MAX_ALPHA_BETA_DEPTH) {
-        std::cout << "searched and found best move in search: " << bestMove << std::endl;
-        std::cout << "Total nodes searched: " << nodes_searched << std::endl;
-        return 0;
+
+    if (depth == initial_depth) {
+        if (DEBUG) {
+            std::cout << "searched and found best move in search: " << BitMove(globalBestMove).get_algebraic_notation()
+                      << std::endl;
+            std::cout << "Total nodes searched: " << nodes_searched << std::endl;
+        }
+        // return 0; // problematic ???
     }
 
     return bestValue;
 }
 
-int Game::quiescence_search(int alpha, int beta) {
+int Game::quiescence_search(int alpha, int beta, std::chrono::time_point<std::chrono::high_resolution_clock> end) {
+    auto now = std::chrono::high_resolution_clock::now();
+    if (now >= end) {
+        if (DEBUG)
+            std::cout << "[GAME::QUIESCE] Time ! return" << std::endl;
+        return (board.turn == W) ? -INFTY : INFTY;  // time limit is reached, do not update bestMove
+    }
     int eval = evaluate();
     if (eval >= beta) return beta;
     if (alpha < eval) alpha = eval;
@@ -197,7 +220,8 @@ int Game::quiescence_search(int alpha, int beta) {
     for (const auto& move : captures) {
         BoardState savedState(board);
         board.make_move(move);
-        int score = -quiescence_search(-beta, -alpha);
+        int score = -quiescence_search(-beta, -alpha, end);
+        if (now >= end) return (board.turn == W) ? -INFTY : INFTY;
         savedState.reapply(board);
 
         if (score >= beta) return beta;
@@ -214,7 +238,8 @@ int Game::evaluate() {
         for (int j = 0; j < 8; j++)
             evaluation += evaluate_piece(board.pieceOnSquare[i * 8 + j], i, j);
 
-    // TODO: crucial: use justCheckCheck on board.move()
+    // TODO: use justCheckCheck on board.move()
+    // TODO: crucial: what score to put for checking here ?
     // if black checks white
     if (board.is_attacked(board.find_king(W), B)) {
         evaluation -= 50;

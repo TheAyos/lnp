@@ -3,7 +3,7 @@
 
 # command="chessGame -W ./build/logic-and-proofs -B chessDeterministicPlayer"
 #command="chessGame -B ./build/logic-and-proofs -W chessRandomPlayer"
-command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer"
+command="chessGame -W ./build/logic-and-proofs -B chessRandomPlayer -t 10"
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <number_of_games>"

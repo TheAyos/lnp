@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
 #else
 int main(int argc, char **argv) {
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     // Board board ("r1bqkbnr/pppn1ppp/3p4/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R w KQkq ");// should randomly play f1c4 or b1c3 (from openings.txt)
     Board board;
     Openings openings("openings.txt");
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
 
     std::cout << "starting search..." << std::endl;
 
-    U64 bestMove = game.search();
+    U64 bestMove = game.search(start);
 
     if (!bestMove) Util::exitError("no move found here in main !!");
     std::cout << "how i see the board before writing next move: " << board;

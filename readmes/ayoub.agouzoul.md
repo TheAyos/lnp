@@ -19,4 +19,8 @@
 ### Week 6:
 - Helped with some merge conflicts
 ### Week 7:
-- StackOverflow Bugfix (need to link the binary with a bigger stack size)
+- merged many recent changes to main branch while fixing conflicts and miscellaneous refactorings
+- StackOverflow bugfix (need to link the binary with a bigger stack size)
+- Openings bugfix
+- implement iterative depth deepening to 1.avoid timeouts and to 2.use all the time we have to search as deep as possible (now ~100% winrate against random AI whereas before it was 85%)
+- starting quiescence search implementation, to avoid the horizon effect at leaf nodes of the search (avoid bad outcomes that could be simply avoided)
