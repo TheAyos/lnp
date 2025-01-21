@@ -43,7 +43,7 @@ namespace BitOps {
         file = square % 8;
     }
 
-    static inline int count_bits(U64 bb) {
+    static inline int pop_count_bits(U64 bb) {
         // to be able to compile and use Visual Studio debug tools
         #ifdef _MSC_VER
             return _mm_popcnt_u64(bb);
@@ -61,4 +61,15 @@ namespace BitOps {
             return __builtin_ctzll(bb);
         #endif
     }
+
+    inline U64 get_sliding_blockers(int index, int n_mask_bits, U64 attack_mask) {
+        U64 blockers = 0ULL;
+        for (int i = 0; i < n_mask_bits; i++) {
+            int sq = get_lsb_index(attack_mask);
+            clear_bit(attack_mask, sq);
+            if (index & (1 << i)) blockers |= (1ULL << sq);
+        }
+        return blockers;
+    }
+
 }  // namespace BitOps

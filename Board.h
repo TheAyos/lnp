@@ -83,9 +83,13 @@ class Board {
     /* ----------------------------- attack-related ----------------------------- */
 
     // precalculated attack bitmasks, built in init_attacks() at instanciation, to save time later
-    U64 pawnAttacks[2][64] = {0};
+    U64 pawnAttacks[2][64] = {{0}};
     U64 knightAttacks[64] = {0};
     U64 kingAttacks[64] = {0};
+    U64 rookSlidingMasks[64] = {0};
+    U64 rookMagicAttacks[64][4096] = {{0}};
+    U64 bishopSlidingMasks[64] = {0};
+    U64 bishopMagicAttacks[64][1024] = {{0}};
 
     // check if a square is attacked by any piece of given color
     bool is_attacked(int square, int by_color);
