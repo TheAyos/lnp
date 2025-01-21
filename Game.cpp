@@ -9,6 +9,7 @@
 #include "BitMove.h"
 #include "Board.h"
 #include "Definitions.h"
+#include "Evaluation.h"
 
 // FIXME: safety handling & find a better way of passing object instances
 // FIXME: invalid move to init
@@ -132,7 +133,7 @@ int Game::search_best_alpha_beta(U64& bestMove,
     }
     // FIXME: testing for improvement, still need to understand and fix quiescence_search
     // if (depth == 0) return quiescence_search(bestMove, initial_depth, depth, alpha, beta, end);
-    if (depth == 0) return evaluate();
+    if (depth == 0) return Evaluation::eval(board);
 
     nSearchedNodes++;
 
@@ -211,6 +212,7 @@ int Game::quiescence_search(U64& bestMove,
     //     return search_best_alpha_beta(bestMove, initial_depth, depth, alpha, beta, end);
 
     int eval = evaluate();
+    // int eval = Evaluation::eval();
     if (eval >= beta) return beta;
     if (alpha < eval) alpha = eval;
 
