@@ -1,20 +1,30 @@
 #pragma once
-#include "Board.h"
-#include <fstream>
-#include <iostream>
 #include <string>
 #include <unordered_map>
 
-struct Parser {
-  int argc;
-  char **argv;
-  std::unordered_map<std::string, std::string> argMap;
+#include "BitMove.h"
+#include "Definitions.h"
 
-  std::string historyFile;
-  std::string outputFile;
+class Board;
+class Parser {
+   public:
+    Board &board;
+    int argc;
+    char **argv;
 
-  Parser(int argc, char **argv);
-  int parseArgs();
-  int parseHistory(Board* board);
-  int writeNextMove(const std::string &moveString);
+    Parser(Board &board, int argc, char **argv);
+
+    void parseArgs();
+
+    void parseHistory();
+
+    // construct valid BitMove object from a move in algebraic notation (e.g. e2e4, e7e8q) from parser input
+    BitMove parse_algebraic_move(int from, int to, char promotion_piece);
+
+    void writeNextMove(const std::string &moveString);
+
+   private:
+    std::unordered_map<std::string, std::string> argMap;
+    std::string historyFile;
+    std::string outputFile;
 };

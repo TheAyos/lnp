@@ -1,20 +1,30 @@
----
+ConstructorInitializerIndentWidth: '4'
+ContinuationIndentWidth: '4'
+TabWidth: '4'
+UseTab: Never
+
+SpaceBeforeParens: ControlStatements
+
+BreakBeforeBraces: Attach
+
+AllowShortIfStatementsOnASingleLine: 'true'
+AllowShortCaseLabelsOnASingleLine: 'true'
+
+BasedOnStyle: Google
 AlignEscapedNewlinesLeft: 'true'
 AlignTrailingComments: 'false'
 AllowAllParametersOfDeclarationOnNextLine: 'true'
 AllowShortBlocksOnASingleLine: 'false'
 AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: 'false'
 AllowShortLoopsOnASingleLine: 'false'
 AlwaysBreakTemplateDeclarations: 'true'
 BinPackParameters: 'false'
 BreakBeforeBinaryOperators: 'true'
 BreakConstructorInitializersBeforeComma: 'false'
-ColumnLimit: '80'
-ConstructorInitializerIndentWidth: '4'
-ContinuationIndentWidth: '4'
+ColumnLimit: '120'
 Cpp11BracedListStyle: 'true'
 IndentCaseLabels: 'true'
+IndentWidth: '4'
 IndentWidth: '4'
 IndentWrappedFunctionNames: 'true'
 KeepEmptyLinesAtTheStartOfBlocks: 'true'
@@ -23,11 +33,8 @@ NamespaceIndentation: All
 PenaltyBreakBeforeFirstCallParameter: '0'
 PointerAlignment: Right
 SpaceBeforeAssignmentOperators: 'true'
-SpaceBeforeParens: Never
 SpaceInEmptyParentheses: 'false'
 SpacesInAngles: 'false'
 SpacesInCStyleCastParentheses: 'false'
 SpacesInParentheses: 'false'
 Standard: Cpp11
-TabWidth: '4'
-UseTab: Never

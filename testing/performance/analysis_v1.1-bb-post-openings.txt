@@ -1,0 +1,12 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ns/call  ns/call  name    
+ 44.45      0.04     0.04  2194772    18.23    23.80  Board::move(BitMove const&, bool)
+ 33.34      0.07     0.03                             main
+ 11.11      0.08     0.01  3584542     2.79     2.79  Bishop::get_attack_masks_blocking(int, unsigned long long)
+ 11.11      0.09     0.01  3512606     2.85     5.57  Board::is_attacked(int, int)
+  0.00      0.09     0.00  3496861     0.00     0.00  Rook::get_attack_masks_blocking(int, unsigned long long)
+  0.00      0.09     0.00  1514231     0.00    23.80  Board::add_move_if_legal(BitMoveVec&, BitMove const&)
+  0.00      0.09     0.00    51210     0.00   713.02  Board::get_all_legal_moves()

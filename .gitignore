@@ -47,4 +47,8 @@ _deps
 build/
 .vscode
 move.txt
+*nah*
 *.csv
+stockfish
+
+v1.0-vs-v1.1/

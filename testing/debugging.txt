@@ -1,0 +1,1 @@
+g++ -std=c++17 -g -o0 -Wall -Wreturn-type -pedantic -Wextra -Wconversion -I. -o logic-and-proofs main.cpp Parser.cpp Definitions.cpp Board.cpp BitMove.cpp BitOps.cpp BitIterator.cpp bitpieces/Pawn.cpp bitpieces/Knight.cpp bitpieces/Queen.cpp bitpieces/King.cpp bitpieces/Bishop.cpp bitpieces/Rook.cpp && valgrind --leak-check=full ./logic-and-proofs

@@ -1,0 +1,23 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 20.59      0.28     0.28 19097790     0.00     0.00  Board::update_occupancies()
+ 10.30      0.42     0.14 409889580     0.00     0.00  BitOps::rf_to_square(int, int)
+  9.56      0.55     0.13 39633322     0.00     0.00  Bishop::get_attack_masks_blocking(int, unsigned long long)
+  9.19      0.68     0.13 39620773     0.00     0.00  Rook::get_attack_masks_blocking(int, unsigned long long)
+  5.88      0.76     0.08 135280196     0.00     0.00  Board::get_color_piece(int, int)
+  4.04      0.81     0.06 219797856     0.00     0.00  BitOps::rf_to_square(int, int)
+  3.68      0.86     0.05 19395868     0.00     0.00  Board::is_attacked(int, int)
+  2.94      0.90     0.04 19097771     0.00     0.00  Board::move(BitMove const&, bool)
+  2.94      0.94     0.04  1660384     0.00     0.00  BitOps::clear_bit(unsigned long long&, int)
+  2.57      0.98     0.04 39620773     0.00     0.00  BitOps::square_to_rf(int, int&, int&)
+  2.21      1.01     0.03 19651177     0.00     0.00  Queen::get_attack_masks_blocking(int, unsigned long long)
+  2.21      1.04     0.03 19097771     0.00     0.00  BoardState::reapply(Board&) const
+  1.84      1.06     0.03  1980200     0.00     0.00  BitOps::clear_bit(unsigned long long&, int)
+  1.47      1.08     0.02 39633322     0.00     0.00  BitOps::square_to_rf(int, int&, int&)
+  1.47      1.10     0.02 27855690     0.00     0.00  __gnu_cxx::__normal_iterator<BitMove*, std::vector<BitMove, std::allocator<BitMove> > >::base() const
+  1.47      1.12     0.02 13323215     0.00     0.00  void std::__relocate_object_a<BitMove, BitMove, std::allocator<BitMove> >(BitMove*, BitMove*, std::allocator<BitMove>&)
+  1.47      1.14     0.02        9     2.22   151.12  Board::perft_search(int)
+...sub 1%

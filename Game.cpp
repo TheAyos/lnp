@@ -1,277 +1,296 @@
 #include "Game.h"
 
-Game::Game(){	 
-	turn = 1;
+#include <algorithm>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+
+#include "BitMove.h"
+#include "Board.h"
+#include "Definitions.h"
+
+// FIXME: safety handling & find a better way of passing object instances
+// FIXME: invalid move to init
+Game::Game(Board& board, Openings* openings) : board(board), openings(openings), nSearchedNodes(0), globalBestMove(-1) {
 }
 
-double Game::search_best(int depth, int t, double prev_eval) {
-	// Total nodes searched: 433 at depth 3
-	// Total nodes searched: 7946 at depth 4
-	// if (depth == 3) my_move.clear();
-	static long nodes_searched = 0;
-	if (depth == MAX_ALPHA_BETA_DEPTH) {
-		nodes_searched = 0; // reset at start of new search
-	}
-	nodes_searched++;
+/* -------------------------------------------------------------------------- */
+/*                search and evaluation (i.e. actually playing)               */
+/* -------------------------------------------------------------------------- */
 
-	double value;
-	if (t == 1) value = -9999;
-	else value = 9999;
-	double best_value = 0;
-
-	std::vector<std::string> cache = my_board.all_legal_moves(t);
-	
-	for (auto & str : cache) {
-		double cur_eval = 0;
-		
-		int board_status[10];
-		my_board.move(str,board_status); // make the move
-		cur_eval = evaluate();
-
-		if ((t==0 && cur_eval <= prev_eval) || (t==1 && cur_eval >= prev_eval)) {
-			if (depth != 1) {
-				best_value = search_best(depth-1, 1-t, cur_eval);
-				if ((t==0 && best_value < value) || (t==1 && best_value > value)) {
-					value = best_value;
-					if (depth == 3) my_move = str;
-				}
-
-			}
-			else if ((t==0 && cur_eval < value) || (t==1 && cur_eval > value)) {
-				value = cur_eval;
-				if (depth == 3) my_move = str;
-			}
-
-		}
-		// if (my_move.length() > 0)
-			// std::cout << my_move << std::endl;
-		my_board.undo_move(str,board_status); //undo move
-	}
-
-	if (depth == MAX_ALPHA_BETA_DEPTH) {
-		std::cout << "Total nodes searched: " << nodes_searched << std::endl;
-		return 0;
-	}
-	else return value;
+// TOKEEP: for debugging purposes
+void Game::search_random(U64& bestMove) {
+    BitMoveVec moves = board.get_all_legal_moves();
+    // std::cout << "---------------[search_random]: moves: " << std::endl;
+    // std::cout << "---------------[search_random]: moves: " << std::endl;
+    // std::cout << board << moves;
+    // std::cout << "[search_random]: moves---------------" << std::endl;
+    // std::cout << "[search_random]: moves---------------" << std::endl;
+    srand(time(0));
+    if (!moves.size()) Util::exitError("search_random: no moves generated !!");
+    bestMove = moves[rand() % moves.size()].get_bit_repr();
+    // std::cout << "[search_random]: " << sq_to_coord(bestMove->get_from()) << ", " << sq_to_coord(bestMove->get_to())
+    //           << ", " << bestMove->get_algebraic_notation() << std::endl;
+    std::cout << "[search_random]: " << BitMove(bestMove).get_algebraic_notation() << std::endl;
 }
 
-int Game::search_best_alpha_beta(int depth, int t, int prev_eval, int alpha, int beta) {
-	// Total nodes searched: 433 at depth 3
-	// Total nodes searched: 7946 at depth 4
-   if (depth == 0) return evaluate();
-   
-   static long nodes_searched = 0;
-   if (depth == MAX_ALPHA_BETA_DEPTH) {
-      nodes_searched = 0; // reset at start of new search
-   }
-   nodes_searched++;
+int Game::search_best_minimax(U64& bestMove, int depth) {
+    if (depth == 0) return evaluate();
 
-   int bestValue = t ? -999999 : 999999;
-   int score = 0;
-   
-   std::vector<std::string> moves = my_board.all_legal_moves(t);
-   for (const auto& move : moves) {
-      int board_status[10];
-      my_board.move(move, board_status);
-      
-      score = search_best_alpha_beta(depth-1, 1-t, prev_eval, alpha, beta);
-      
-      if (t) { // maximizing player
-         if (score > bestValue) {
-            bestValue = score;
-            if (depth == MAX_ALPHA_BETA_DEPTH) {
-               my_move = move;
+    static long nodes_searched = 0;
+    if (depth == MAX_ALPHA_BETA_DEPTH) {
+        nodes_searched = 0;  // Reset counter at root
+    }
+    nodes_searched++;
+
+    int bestValue = (board.turn == W) ? -INFTY : INFTY;
+    BitMoveVec moves = board.get_all_legal_moves();
+
+    for (const auto& move : moves) {
+        BoardState savedState(board);
+        if (board.make_move(move) == -1) continue;
+
+        int score = search_best_minimax(bestMove, depth - 1);
+        savedState.reapply(board);
+
+        if (board.turn == W) {  // Maximizing player
+            if (score > bestValue) {
+                bestValue = score;
+                if (depth == MAX_ALPHA_BETA_DEPTH) {
+                    bestMove = move.get_bit_repr();
+                }
             }
-            if (score > alpha) {
-               alpha = score;
+        } else {  // Minimizing player
+            if (score < bestValue) {
+                bestValue = score;
+                if (depth == MAX_ALPHA_BETA_DEPTH) {
+                    bestMove = move.get_bit_repr();
+                }
             }
-         }
-      }
-      else { // minimizing player 
-         if (score < bestValue) {
-            bestValue = score;
-            if (depth == MAX_ALPHA_BETA_DEPTH) {
-               my_move = move;
-            }
-            if (score < beta) {
-               beta = score;
-            }
-         }
-      }
-      
-      my_board.undo_move(move, board_status);
-      
-      if (beta <= alpha) {
-         break; // alpha-beta pruning
-      }
-   }
-
-   if (depth == MAX_ALPHA_BETA_DEPTH) {
-      std::cout << "Total nodes searched: " << nodes_searched << std::endl;
-      return 0;
-   }
-   
-   return bestValue;
-}
-
-
-double Game::evaluate(){
-	double evaluation = 0;
-
-
-    for (int i = 0; i < 64; ++i) { // iterate over all the squares
-        int piece = board.get_piece_on_square(i); // and  dget the piece type on each thiss squares
-        if (piece != NOPIECE) { 
-            evaluation += evaluate_piece(piece, i); 
         }
     }
 
-	return evaluation;
-}
-
-double Game::evaluate_piece(Piece* piece) {
-    if (piece == NOPIECE) return 0.0;
-
-
-    const char* pos = sq_to_coord(square);
-
-    int x = pos[0] - 'a';
-
-    int y = 8 - (pos[1] - '0');
-
-    double p_evaluation = 0;
-
-
-    
-    static const double piece_values[] = {100, 300, 300, 500, 900, 9000};
-
-    static const double pawn_table[8][8] = {
-        {  0,   0,   0,   0,   0,   0,   0,   0 },
-        {  5,   5,   5,   5,   5,   5,   5,   5 },
-        {  1,   1,   2,   3,   3,   2,   1,   1 },
-        {  0.5, 0.5, 1,   2.5, 2.5, 1,   0.5, 0.5 },
-        {  0,   0,   0,   2,   2,   0,   0,   0 },
-        {  0.5,-0.5,-1,   0,   0,-1,  -0.5, 0.5 },
-        {  0.5, 1,   1,  -2,  -2,   1,   1,  0.5 },
-        {  0,   0,   0,   0,   0,   0,   0,   0 }
-    };
-
-    static const double knight_table[8][8] = {
-        {-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0 },
-        {-4.0, -2.0,  0.0,  0.0,  0.0,  0.0, -2.0, -4.0 },
-        {-3.0,  0.0,  1.0,  1.5,  1.5,  1.0,  0.0, -3.0 },
-        {-3.0,  0.5,  1.5,  2.0,  2.0,  1.5,  0.5, -3.0 },
-        {-3.0,  0.0,  1.5,  2.0,  2.0,  1.5,  0.0, -3.0 },
-        {-3.0,  0.5,  1.0,  1.5,  1.5,  1.0,  0.5, -3.0 },
-        {-4.0, -2.0,  0.0,  0.5,  0.5,  0.0, -2.0, -4.0 },
-        {-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0 }
-    };
-
-
-    static const double bishop_table[8][8] = {
-        {-2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0 },
-        {-1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0 },
-        {-1.0,  0.0,  0.5,  1.0,  1.0,  0.5,  0.0, -1.0 },
-        {-1.0,  0.5,  0.5,  1.0,  1.0,  0.5,  0.5, -1.0 },
-        {-1.0,  0.0,  1.0,  1.0,  1.0,  1.0,  0.0, -1.0 },
-        {-1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, -1.0 },
-        {-1.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.5, -1.0 },
-        {-2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0 }
-    };
-
-
-	static const double rook_table[8][8] = {
-		{ 0.0,  0.0,  0.0,  0.5,  0.5,  0.0,  0.0,  0.0 },
-		{ 0.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  0.0 },
-		{ 0.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0 },
-		{ 0.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0 },
-		{ 0.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0 },
-		{ 0.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0 },
-		{ 0.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  0.0 },
-		{ 0.0,  0.0,  0.0,  0.5,  0.5,  0.0,  0.0,  0.0 }
-	};
-
-	static const double queen_table[8][8] = {
-		{-2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0 },
-		{-1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0 },
-		{-1.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0 },
-		{-0.5,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5 },
-		{ 0.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5 },
-		{-1.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0 },
-		{-1.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0, -1.0 },
-		{-2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0 }
-	};
-
-	static const double king_table[8][8] = {
-		{-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0 },
-		{-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0 },
-		{-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0 },
-		{-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0 },
-		{-2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0 },
-		{-1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0 },
-		{ 2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0 },
-		{ 2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0 }
-	};
-
-    switch (piece) {
-        case PAWN:
-            p_evaluation += piece_values[0] + pawn_table[y][x];
-            break;
-        case pawn:
-            p_evaluation -= piece_values[0] + pawn_table[7 - y][x];
-            break;
-        case KNIGHT:
-            p_evaluation += piece_values[1] + knight_table[y][x];
-            break;
-        case knight:
-            p_evaluation -= piece_values[1] + knight_table[7 - y][x];
-            break;
-        case BISHOP:
-            p_evaluation += piece_values[2] + bishop_table[y][x];
-            break;
-        case bishop:
-            p_evaluation -= piece_values[2] + bishop_table[7 - y][x];
-            break;
-        case ROOK:
-            p_evaluation += piece_values[3] + rook_table[y][x];
-            break;
-        case rook:
-            p_evaluation -= piece_values[3] + rook_table[7 - y][x];
-            break;
-        case QUEEN:
-            p_evaluation += piece_values[4] + queen_table[y][x];
-            break;
-        case queen:
-            p_evaluation -= piece_values[4] + queen_table[7 - y][x];
-            break;
-        case KING:
-            p_evaluation += piece_values[5] + king_table[y][x];
-            break;
-        case king:
-            p_evaluation -= piece_values[5] + king_table[7 - y][x];
-            break;
-        default:
-            break; // No piece
+    if (depth == MAX_ALPHA_BETA_DEPTH) {
+        std::cout << "[MINIMAX]Total nodes searched: " << nodes_searched << std::endl;
+        return 0;
     }
 
-	return p_evaluation;
+    return bestValue;
 }
 
-// perft searcher
-int Game::search(int depth, int t) {
-	std::vector<std::string> cache = my_board.all_legal_moves(t);
-	int out = 0;
+#define MAX_SEARCH_DEPTH 10
+#define MAX_SEARCH_TIME_S 9
+const bool DEBUG = false;
 
-	if (depth == 1) {
-		// for (auto & str : cache) std::cout << str << std::endl;
-		return cache.size();
-	}
+#include <chrono>
 
-	for (auto & str : cache) {
-		int board_status[10];	
-		my_board.move(str, board_status);	
-		out += search(depth-1, 1-t);
-	        my_board.undo_move(str, board_status);	
-	}
-	return out;
+U64 Game::search(std::chrono::time_point<std::chrono::high_resolution_clock> start) {
+    globalBestMove = 0;
+    int score = 0;
+
+    auto end = start + std::chrono::seconds(MAX_SEARCH_TIME_S);  // time constraint
+    auto endSafe = start + std::chrono::seconds(MAX_SEARCH_TIME_S);  // time constraint
+
+    // iterative deepening
+    for (int depth = 1; depth <= MAX_SEARCH_DEPTH; depth++) {
+        auto now = std::chrono::high_resolution_clock::now();
+        if (now >= end) {
+            if (DEBUG)
+                std::cout << "[GAME::SEARCH] Time ! stopping search at depth " << depth - 1 << std::endl;
+            break;
+        }
+
+        U64 localBestMove = 0;
+        score = search_best_alpha_beta(localBestMove, depth, depth, -INFTY, INFTY, end);
+        now = std::chrono::high_resolution_clock::now();
+        // search done in time, can set new best move
+        if (now < end) {
+            std::cout << "done search in time, setting new best " << BitMove(localBestMove).get_algebraic_notation() << std::endl;
+            globalBestMove = localBestMove;
+        }
+
+        if (globalBestMove == 0) {
+            if (DEBUG) std::cout << "[GAME::SEARCH] no move found, fallback to random" << std::endl;
+            search_random(globalBestMove);
+        }
+
+        if (DEBUG) std::cout << "[INFO] depth " << depth << " score " << score << std::endl;
+    }
+
+    return globalBestMove;
+}
+
+int Game::search_best_alpha_beta(U64& bestMove,
+                                 int initial_depth,
+                                 int depth,
+                                 int alpha,
+                                 int beta,
+                                 std::chrono::time_point<std::chrono::high_resolution_clock> end) {
+    auto now = std::chrono::high_resolution_clock::now();
+    if (now >= end) {
+        if (DEBUG)
+            std::cout << "[GAME::SEARCH_A_B] Time ! return from search at depth " << depth << std::endl;
+        return (board.turn == W) ? -INFTY : INFTY;  // time limit is reached, do not update bestMove
+    }
+    if (depth == 0) return quiescence_search(alpha, beta, end);
+    // if (depth == 0) return evaluate();
+
+    static long nodes_searched;
+    if (depth == initial_depth) {
+        nodes_searched = 0;  // reset at start of new search
+    }
+    nodes_searched++;
+
+    int bestValue = (board.turn == W) ? -INFTY : INFTY;
+    int score = 0;
+    // U64 localBestMove = 0;
+
+    BitMoveVec moves = board.get_all_legal_moves();
+
+    /* ------------------------------ move ordering ----------------------------- */
+    // move last best move to the front
+    if (initial_depth == depth && globalBestMove != 0) {
+        auto it = std::find_if(moves.begin(), moves.end(), [&](const BitMove& move) {
+            return move.get_bit_repr() == globalBestMove;
+        });
+        if (it != moves.end()) {
+            std::iter_swap(moves.begin(), it);
+        }
+    }
+    /* ------------------------------ move ordering ----------------------------- */
+
+    for (const auto& move : moves) {
+        BoardState savedState(board);
+        board.make_move(move);
+        // score = search_best_alpha_beta(tempBestMove, initial_depth, depth - 1, alpha, beta, end);
+        score = search_best_alpha_beta(bestMove, initial_depth, depth - 1, alpha, beta, end);
+        if (now >= end) return (board.turn == W) ? -INFTY : INFTY;  // time limit is reached
+        savedState.reapply(board);
+
+        if (board.turn == W) {  // maximizing player
+            if (score > bestValue) {
+                bestValue = score;
+                if (depth == initial_depth) {
+                    bestMove = move.get_bit_repr();
+                }
+                if (score > alpha) {
+                    alpha = score;
+                }
+            }
+        } else {  // minimizing player
+            if (score < bestValue) {
+                bestValue = score;
+                if (depth == initial_depth) {
+                    bestMove = move.get_bit_repr();
+                }
+                if (score < beta) {
+                    beta = score;
+                }
+            }
+        }
+
+        if (beta <= alpha) break;  // alpha-beta pruning
+    }
+
+
+    if (depth == initial_depth) {
+        if (DEBUG) {
+            std::cout << "searched and found best move in search: " << BitMove(globalBestMove).get_algebraic_notation()
+                      << std::endl;
+            std::cout << "Total nodes searched: " << nodes_searched << std::endl;
+        }
+        // return 0; // problematic ???
+    }
+
+    return bestValue;
+}
+
+
+int Game::quiescence_search(int alpha, int beta, std::chrono::time_point<std::chrono::high_resolution_clock> end) {
+    auto now = std::chrono::high_resolution_clock::now();
+    if (now >= end) {
+        if (DEBUG)
+            std::cout << "[GAME::QUIESCE] Time ! return" << std::endl;
+        return (board.turn == W) ? -INFTY : INFTY;  // time limit is reached, do not update bestMove
+    }
+    int eval = evaluate();
+    if (eval >= beta) return beta;
+    if (alpha < eval) alpha = eval;
+
+    BitMoveVec captures = board.get_capture_moves();
+    for (const auto& move : captures) {
+        BoardState savedState(board);
+        board.make_move(move);
+        int score = -quiescence_search(-beta, -alpha, end);
+        if (now >= end) return (board.turn == W) ? -INFTY : INFTY;
+        savedState.reapply(board);
+
+        if (score >= beta) return beta;
+        if (score > alpha) alpha = score;
+    }
+
+    return alpha;
+}
+
+int Game::evaluate() {
+    int evaluation = 0;
+
+    for (int i = 0; i < 8; i++)
+        for (int j = 0; j < 8; j++)
+            evaluation += evaluate_piece(board.pieceOnSquare[i * 8 + j], i, j);
+
+    // TODO: use justCheckCheck on board.move()
+    // TODO: crucial: what score to put for checking here ?
+    // if black checks white
+    if (board.is_attacked(board.find_king(W), B)) {
+        evaluation -= 50;
+        BitMoveVec moves = board.get_all_legal_moves();
+        if (moves.size() == 0) return -INFTY;
+
+    } else if (board.is_attacked(board.find_king(B), W)) {  // if white checks black
+        evaluation += 50;
+        BitMoveVec moves = board.get_all_legal_moves();
+        if (moves.size() == 0) return INFTY;
+    }
+    return evaluation;
+}
+
+int Game::evaluate_piece(int piece, int rank, int file) {
+    if (piece == 12) return 0;
+    int piecetype = piece % 6;
+    int color = (piece > 5) ? 0 : 1;
+
+    static const int material_values[] = {100, 320, 330, 500, 900, 10000};
+    int base_value = material_values[piecetype];
+
+    int positional_bonus = 0;
+    switch (piecetype) {
+        case PAWN: positional_bonus = color ? pawn_table[rank][file] : pawn_table[7 - rank][file]; break;
+        case KNIGHT: positional_bonus = color ? knight_table[rank][file] : knight_table[7 - rank][file]; break;
+        case BISHOP: positional_bonus = color ? bishop_table[rank][file] : bishop_table[7 - rank][file]; break;
+        case ROOK: positional_bonus = color ? rook_table[rank][file] : rook_table[7 - rank][file]; break;
+        case QUEEN: positional_bonus = color ? queen_table[rank][file] : queen_table[7 - rank][file]; break;
+        case KING: positional_bonus = color ? king_table[rank][file] : king_table[7 - rank][file]; break;
+    }
+    int value = base_value + positional_bonus;
+    return (color ? value : -value);
+}
+
+// get opening move
+std::string Game::playOpeningMove(int argc, char** argv) {
+    std::string bestMoveStr = openings->getMove(board);
+    if (!bestMoveStr.empty()) {
+        // transform a move in alg notation (ex : e2e4) to a bitmove
+        Parser parser(board, argc, argv);
+        BitMove bestMove = parser.parse_algebraic_move(
+            coord_to_sq(bestMoveStr.substr(0, 2)), coord_to_sq(bestMoveStr.substr(2, 2)), ' ');
+        // check legality of opening move
+        std::cout << bestMoveStr << std::endl;
+        std::cout << bestMoveStr << std::endl;
+        std::cout << bestMoveStr << std::endl;
+        board.make_move(bestMove);
+        return bestMove.get_algebraic_notation();
+    }
+    return "";
+    // else no opening move, proceed with normal search
 }

@@ -1,44 +1,33 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
 project(logic-and-proofs
-  VERSION 0.1
+  VERSION 1.1
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pg") # for profiling
+# for debugging/profiling
+# TODO: make different compilation profiles ? commands ? for realease & debug
+# set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_CXX_FLAGS "-g ${CMAKE_CXX_FLAGS} -Wall -Wreturn-type -pedantic -Wextra -Wconversion -Wall -Wextra -Wundef -Wnull-dereference -Wpedantic -pedantic-errors -Wnoexcept -Wuninitialized -Wunused -Wunused-parameter -Winit-self -Wconversion -Wuseless-cast -Wextra-semi -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override  -Wformat-signedness -Wno-format-zero-length -Wmissing-include-dirs -Wshift-overflow=2 -Walloc-zero -Walloca -Wsign-promo -Wconversion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal -Wshadow -Wshadow=local -Wmultiple-inheritance -Wvirtual-inheritance -Wno-virtual-move-assign -Wunsafe-loop-optimizations -Wnormalized -Wpacked -Wredundant-decls -Wmismatched-tags -Wredundant-tags -Wctor-dtor-privacy -Wdeprecated-copy-dtor -Wstrict-null-sentinel -Wold-style-cast -Woverloaded-virtual -Wzero-as-null-pointer-constant -Wconditionally-supported -Werror=pedantic -Wwrite-strings -Wmultiple-inheritance -Wdouble-promotion -Wpointer-arith -Wcast-align=strict -Wcast-qual -Wconversion -Wsign-conversion -Wimplicit-fallthrough=1 -Wmisleading-indentation -Wdangling-else -Wdate-time -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wformat-truncation=2 -Wswitch-default -Wswitch-enum -Wstrict-overflow=5 -Wstringop-overflow=4 -Warray-bounds=2 -Wattribute-alias=2 -Wcatch-value=2 -Wplacement-new=2 -Wtrampolines -Winvalid-imported-macros -Winvalid-imported-macros")
+# -Wunused-const-variable=2 -Weffc++
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pg")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg") # for profiling
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+# fastest, need to recompile on specific machine to run (march=native)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -flto")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,stack-size=10000000")
 
-add_library(game Parser.h Parser.cpp Util.h Util.cpp pieces/Knight.h pieces/Knight.cpp Board.h Board.cpp
-            pieces/King.h pieces/King.cpp pieces/Piece.h pieces/Piece.cpp
-            pieces/Pawn.h pieces/Pawn.cpp
-            pieces/Bishop.h pieces/Bishop.cpp pieces/Rook.h pieces/Rook.cpp
-            pieces/Queen.h pieces/Queen.cpp Game.h Game.cpp)
-add_executable(logic-and-proofs main.cpp)
 include_directories(.)
-target_link_libraries(logic-and-proofs PRIVATE game)
 
+add_library(headers
+            Parser.h Parser.cpp
+            Definitions.h Definitions.cpp
+            Board.h Board.cpp BitMove.h BitMove.cpp BitOps.h BitOps.cpp # BitIterator.h BitIterator.cpp
+            Game.h Game.cpp
+            bitpieces/Pawn.h bitpieces/Pawn.cpp bitpieces/Knight.h bitpieces/Knight.cpp
+            bitpieces/Queen.h bitpieces/Queen.cpp bitpieces/King.h bitpieces/King.cpp
+            bitpieces/Bishop.h bitpieces/Bishop.cpp bitpieces/Rook.h bitpieces/Rook.cpp
+            Openings.h Openings.cpp)
 
-
-# with flags
-# Depth   Calculated      Error   seconds Kpos/s
-# 1       20              0       0.00013 1.6
-# 2       400             0       0.0022  1.8
-# 3       8902            0       0.049   1.8
-# 4       197281          0       1.2     1.7
-# 5       4865351         -258    28      1.7
-
-# to -O2
-# Depth   Calculated      Error   seconds Kpos/s
-# 1       20              0       2.6e-05 7.7
-# 2       400             0       0.00029 14
-# 3       8902            0       0.0065  14
-# 4       197281          0       0.16    13
-# 5       4865351         -258    3.8     13
-
-# to -O3 -march=native -flto
-# Depth   Calculated      Error   seconds Kpos/s
-# 1       20              0       2.7e-05 7.4
-# 2       400             0       0.00027 15
-# 3       8902            0       0.0061  15
-# 4       197281          0       0.14    14
-# 5       4865351         -258    3.4     14
+add_executable(logic-and-proofs main.cpp)
+target_link_libraries(logic-and-proofs PRIVATE headers)

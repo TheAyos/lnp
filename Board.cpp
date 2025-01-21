@@ -1,394 +1,511 @@
 #include "Board.h"
-#include "Util.h"
+
+#include <chrono>
+#include <cstring>
 #include <iostream>
-#include <string>
 
-Board::Board() {
-  init();
-}
+#include "BitMove.h"
+#include "BitOps.h"
+#include "Definitions.h"
+#include "bitpieces/Bishop.h"
+#include "bitpieces/King.h"
+#include "bitpieces/Knight.h"
+#include "bitpieces/Pawn.h"
+#include "bitpieces/Queen.h"
+#include "bitpieces/Rook.h"
 
-Pos Board::str_from(std::string str) {
-  return Pos{str[1] - '1', str[0] - 'a'};
-}
-Pos Board::str_to(std::string str) {
-  return Pos{str[3] - '1', str[2] - 'a'};
-}
+using namespace BitOps;
 
-Pos Board::find_king(int color) {
-  Pos k_pos{0, 0};
-  //take the position of our king
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++)
-      if(board[i][j] != nullptr && board[i][j]->type == 5
-         && board[i][j]->color == color)
-        k_pos = board[i][j]->pos;
-  return k_pos;  
-}
+/* -------------------------------------------------------------------------- */
+/*                         constructor & board-related                        */
+/* -------------------------------------------------------------------------- */
 
-void Board::move(std::string move_str, int* board_status) { // makes the move, while updating the board_status from before
-	// display();
-	// std::cout << move_str << std::endl;
-	Pos from = str_from(move_str);
-	Pos to = str_to(move_str);
-	Piece* from_piece = board[from.x][from.y]; // let's assume this is not nullptr
-	Piece* to_piece = board[to.x][to.y];
-	int color = from_piece->color;
-	int promotion = -1;
-	if (move_str.length() == 5) {
-		if (move_str[4] == 'k') promotion = 1;
-		if (move_str[4] == 'b') promotion = 2;
-		if (move_str[4] == 'r') promotion = 3;
-		if (move_str[4] == 'q') promotion = 4;
-	}
-	board_status[6] = promotion;
-	
-	board_status[5] = -1;
-	int p_line = (color)?4:3;
-	for (int j = 0; j < 8; j++) {
-		Piece* pawn = board[p_line][j];
-		if (pawn!=nullptr && pawn->type == 0 && pawn->color != color && pawn->just_moved) {
-			board_status[5] = j; // the pawn that has just moved
-			// my_pawn->just_moved = false; // now we will move something
-		}
-	} // otherwise no pawn has just moved (board_status[5] stays as -1)	
+// starting FEN position
+Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
+    for (int i = 4; i < 8; i++)
+        for (int j = 0; j < 8; j++) {
+            int idx = i * 8 + j;
+            if (i == 7) {
+                if (j == 0 || j == 7) pieceOnSquare[idx] = 3;
+                if (j == 1 || j == 6) pieceOnSquare[idx] = 1;
+                if (j == 2 || j == 5) pieceOnSquare[idx] = 2;
+                if (j == 3) pieceOnSquare[idx] = 4;
+                if (j == 4) pieceOnSquare[idx] = 5;
+            } else if (i == 6)
+                pieceOnSquare[idx] = 0;
+            else
+                pieceOnSquare[idx] = 12;
 
-	if (from_piece->type == 5 && abs(from.y-to.y)==2) { // castle
-		from_piece->has_moved = true;
-		from_piece->pos.x = to.x;
-		from_piece->pos.y = to.y;
-		board[to.x][to.y] = from_piece;
-		board[from.x][from.y] = nullptr;
-		int rook_from_y = (to.y==2)?0:7;
-		int rook_to_y = (to.y==2)?3:5;
-		board[from.x][rook_from_y]->has_moved = true;
-		board[from.x][rook_to_y] = board[from.x][rook_from_y];
-		board[from.x][rook_to_y]->pos.x = from.x;
-		board[from.x][rook_to_y]->pos.y = rook_to_y;
-		board[from.x][rook_from_y] = nullptr;
-		// update board_status
-		board_status[0] = 1; // castling move
-		board_status[1] = 0; // not an en passant
-		board_status[2] = -1; // no captured piece
-		board_status[3] = 1; // rook has just moved
-		board_status[4] = 1; // king has just moved
-	}
-	else if (from_piece->type == 0 && to.y != from.y && board[to.x][to.y] == nullptr) { // en passant
-		board[to.x][to.y] = board[from.x][from.y];
-		board[to.x][to.y]->pos.x = to.x;
-		board[to.x][to.y]->pos.y = to.y;
-		board[from.x][from.y] = nullptr;
-		board[from.x][to.y] = nullptr;
-		// update board_status
-		board_status[0] = 0; // not a castling move
-		board_status[1] = 1; // en passant move
-		board_status[2] = 0; // pawn captured necessarily
-		board_status[3] = 0; // no change to rooks
-		board_status[4] = 0; // no change to king
-	}
-	else { // normal move
-		Piece* captured = board[to.x][to.y];
-  		board[to.x][to.y] = board[from.x][from.y];
-  		board[to.x][to.y]->pos.x = to.x;
-  		board[to.x][to.y]->pos.y = to.y;
-  		board[from.x][from.y] = nullptr;
-		
-		if (promotion > -1) {
-			if (promotion == 1) board[to.x][to.y] = new Knight{color, Pos{to.x,to.y}};
-			if (promotion == 2) board[to.x][to.y] = new Bishop{color, Pos{to.x,to.y}};
-			if (promotion == 3) board[to.x][to.y] = new Rook{color, Pos{to.x,to.y}};
-			if (promotion == 4) board[to.x][to.y] = new Queen{color, Pos{to.x, to.y}};
-		}
-
-		// update board_status
-		board_status[0] = 0; // not castling
-		board_status[1] = 0; // not en passant
-		board_status[2] = (captured == nullptr)?-1:captured->type;
-		if (board[to.x][to.y]->type == 3) {board_status[3] = (board[to.x][to.y]->has_moved)?0:1; board[to.x][to.y]->has_moved=true;} // normal rook move
-		else board_status[3] = 0;
-		if (board[to.x][to.y]->type == 5) {board_status[4] = (board[to.x][to.y]->has_moved)?0:1; board[to.x][to.y]->has_moved=true;} // normal king move
-		else board_status[4] = 0;
-		if (board[to.x][to.y]->type == 0 && abs(to.x-from.x)==2) {
-			// std::cout << move_str << std::endl;
-			// std::cout << to.x << to.y << std::endl; 
-			board[to.x][to.y]->just_moved = true;} // double pawn move
-		
-		/*
-		if (captured!=nullptr && captured->type == 0 && captured->just_moved) board_status[6] = 1; // test
-		else board_status[6] = 0;*/
-	}
-	
-	if (board_status[5] > -1) { // remove just_moved status
-		Piece* pawn = board[p_line][board_status[5]];
-		if (pawn!=nullptr && pawn->type == 0 && pawn->color != color)
-			pawn->just_moved = false;
-	}
-
-}
-
-void Board::undo_move(std::string move_str, int* board_status) {
-	Pos from = str_from(move_str);
-	Pos to = str_to(move_str);
-	Piece* to_piece = board[to.x][to.y];
-	int color = to_piece->color;
-	
-	// undo a double pawn move essentially
-	if (to_piece != nullptr && to_piece->type == 0 && to_piece->just_moved) to_piece->just_moved = false;
-
-	if (board_status[0] == 1) { // undo castling
-		board[from.x][from.y] = board[to.x][to.y];
-		board[from.x][from.y]->pos.x = from.x;
-		board[from.x][from.y]->pos.y = from.y;
-		board[to.x][to.y] = nullptr;
-		int rook_from_y = (to.y==2) ? 0 : 7;
-		int rook_to_y = (to.y==2) ? 3 : 5;
-		board[from.x][rook_from_y] = board[from.x][rook_to_y];
-		board[from.x][rook_from_y]->pos.x = from.x;
-		board[from.x][rook_from_y]->pos.y = rook_from_y;
-		board[from.x][rook_to_y] = nullptr;
-		  
-		board[from.x][from.y]->has_moved = false;
-		board[from.x][rook_from_y]->has_moved = false;			
-	}
-	else if (board_status[1] == 1) { // undo en passant
-		board[from.x][from.y] = board[to.x][to.y];
-  		board[from.x][from.y]->pos.x = from.x;
-  		board[from.x][from.y]->pos.y = from.y;
-  		board[from.x][to.y] = new Pawn{1-color, Pos{from.x,to.y}};
-  		board[to.x][to.y] = nullptr;
-		// board[from.x][to.y]->just_moved = true;	
-	}
-	else {
-  		board[from.x][from.y] = board[to.x][to.y];
-		if (board_status[6] > -1) // undo promotion
-			board[from.x][from.y] = new Pawn{color, Pos{from.x,from.y}}; // restore pawn
-  		board[from.x][from.y]->pos.x = from.x;
-  		board[from.x][from.y]->pos.y = from.y;
-		
-		int c = board_status[2]; // restore captured piece
-		if (c == 0) {board[to.x][to.y] = new Pawn{1-color,Pos{to.x,to.y}};}
-		else if (c == 1) board[to.x][to.y] = new Knight{1-color,Pos{to.x,to.y}};
-		else if (c==2) board[to.x][to.y] = new Bishop{1-color,Pos{to.x,to.y}};
-		else if (c==3) board[to.x][to.y] = new Rook{1-color,Pos{to.x,to.y}};
-		else if (c==4) board[to.x][to.y] = new Queen{1-color,Pos{to.x,to.y}};
-		else board[to.x][to.y] = nullptr;
-		
-		if (board_status[3] == 1) board[from.x][from.y]->has_moved = false; // restore rooks status
-		if (board_status[4] == 1) board[from.x][from.y]->has_moved = false; // restore kings status
-	}
-
-
-	if (board_status[5] > -1) { // restore pawn status
-		int color = board[from.x][from.y]->color;
-		int my_p_line = (color)?4:3;
-		board[my_p_line][board_status[5]]->just_moved = true;
-	}
-}
-
-bool Board::in_check(int color) {
-  Pos k_pos = find_king(color);
-  //for all opponent pieces, check if they can move to our king
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++)
-      if(board[i][j] != nullptr && board[i][j]->color != color)
-        for(auto &elem : board[i][j]->legal_moves(board))
-          if(elem[2] == k_pos.to_str()[0] && elem[3] == k_pos.to_str()[1])
-            return true;
-  return false;
-}
-
-
-std::vector<std::string> Board::all_legal_moves(int color) {
-  if(color != 0 && color != 1) {
-    Util::exitError("Unrecognized color: " + std::to_string(color));
-  }
-  std::vector<std::string> cache;
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++)
-      //for all positions occupied by the color
-      if(board[i][j] != nullptr && board[i][j]->color == color) {
-        // std::cout << i << " " << j << std::endl;
-
-        //we can take all (normal) legal moves with the function
-        std::vector<std::string> store = board[i][j]->legal_moves(board);
-        for(auto &str : store) {
-	  int board_status[10];
-	  move(str,board_status);
-          if(!in_check(color))
-            cache.push_back(str);
-          undo_move(str,board_status);
+            int ridx = (7 - i) * 8 + j;
+            if (i >= 6)
+                pieceOnSquare[ridx] = pieceOnSquare[idx] + 6;
+            else
+                pieceOnSquare[ridx] = 12;
         }
-      }
+};
 
-  // check castling:
-  int kx = color ? 0 : 7;
-  int ky = 4;
-  if (board[kx][ky] != nullptr && board[kx][ky]->type == 5 && board[kx][ky]->color == color && !board[kx][ky]->has_moved) {
-	if (board[kx][0] != nullptr && board[kx][0]->type == 3 && board[kx][0]->color == color && !board[kx][0]->has_moved)
-		if ( board[kx][1] == nullptr && board[kx][2] == nullptr && board[kx][3] == nullptr ) {
-			bool can_castle_l = true;
-			int board_status1[6], board_status2[6];
-			std::string move_str1 =Pos{kx,4}.to_str() + Pos{kx,3}.to_str(); 
-			move(move_str1, board_status1);
-			if (in_check(color)) can_castle_l = false;
-			std::string move_str2 = Pos{kx,3}.to_str() + Pos{kx,2}.to_str();
-			move(move_str2, board_status2);
-			if (in_check(color)) can_castle_l = false;
-			undo_move(move_str2, board_status2);
-			undo_move(move_str1, board_status1);
-			if (can_castle_l) cache.push_back(Pos{kx,4}.to_str() + Pos{kx,2}.to_str());
-		}
-	if (board[kx][7] != nullptr && board[kx][7]->type == 3 && board[kx][7]->color == color && !board[kx][7]->has_moved)
-		if ( board[kx][5] == nullptr && board[kx][6] == nullptr ) {
-			bool can_castle_s = true;
-			int board_status1[6], board_status2[6];
-			std::string move_str1 =Pos{kx,4}.to_str()+Pos{kx,5}.to_str();
-			std::string move_str2 = Pos{kx,5}.to_str()+Pos{kx,6}.to_str();
-			move(move_str1, board_status1);
-			if (in_check(color)) can_castle_s = false;
-			move(move_str2, board_status2);
-			if (in_check(color)) can_castle_s = false;
-			undo_move(move_str2, board_status2);
-			undo_move(move_str1, board_status1);
-			if (can_castle_s) cache.push_back(Pos{kx,4}.to_str()+Pos{kx,6}.to_str());
-		}
-  }
-  
-  // check en passant:
-  int px = color ? 4 : 3; 
-  for ( int j = 0; j < 8; j++ )
-	if ( board[px][j] != nullptr && board[px][j]->type == 0 && board[px][j]->color == color ) {
-		if (j-1 >= 0 && board[px][j-1] != nullptr && board[px][j-1]->type == 0 && board[px][j-1]->just_moved && board[(color?px+1:px-1)][j-1]==nullptr) {
-			int board_status[10];
-			std::string move_str =Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j-1}.to_str();  
-		  	move(move_str, board_status);	
-			if (!in_check(color)) {
-				cache.push_back(Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j-1}.to_str());
-				//display();
-				//std::cout << px << " " << j-1 << std::endl;
-			}
-			undo_move(move_str, board_status);
-			/*display();
-			std::cout << "ABOVE IS REVERSED" << std::endl;
-			std::cout << board[px][j-1]->just_moved << std::endl;*/
-		}
-		if (j+1 < 8 && board[px][j+1] != nullptr && board[px][j+1]->type == 0 && board[px][j+1]->just_moved && board[(color?px+1:px-1)][j+1]==nullptr) {
-			int board_status[10];
-			std::string move_str =Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j+1}.to_str();
-		      	move(move_str, board_status);	
-			if (!in_check(color)) {
-				cache.push_back(Pos{px,j}.to_str()+Pos{(color?px+1:px-1),j+1}.to_str());
-				//display();	
-				//std::cout << px << " " << j+1 << std::endl;
-			}
-			undo_move(move_str, board_status);
-			/*display();
-			std::cout << "ABOVE IS REVERSED" << std::endl;
-			std::cout << board[px][j+1]->just_moved << std::endl;*/
-		}
-	}
- 
-  return cache;
-}
+// TODO: FIXME: OPTI: fixcpcpcpc
+Board::Board(const std::string &fen) {
+    // https://www.chessprogramming.org/Forsyth-Edwards_Notation#Samples
+    // <FEN> ::=  <Piece Placement>
+    //        ' ' <Side to move>
+    //        ' ' <Castling ability>
+    //        ' ' <En passant target square>
+    //        ' ' <Halfmove clock>
+    //        ' ' <Fullmove counter>
+    clear_board();
+    init_attacks();
 
-/*
- * Below are done
- *
- */
-void Board::init() {
-  for(int i = 0; i < 8; i++)
-    for(int j = 0; j < 8; j++) {
-      Pos p{i, j};
-      board[i][j] = nullptr;
+    // interesting : ++i increments i before using its value, i++ increments i after using its value
+    size_t fen_index = 0;
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            int square = rf_to_square(rank, file);
+
+            // handles occupied squares
+            if (fen[fen_index] >= 'A' && fen[fen_index] <= 'Z' || fen[fen_index] >= 'a' && fen[fen_index] <= 'z') {
+                int piece = char_to_pieces(fen[fen_index++]);
+                set_bit(bitboards[piece], square);
+            }
+
+            // handles number of empty squares
+            if (fen[fen_index] >= '0' && fen[fen_index] <= '9') {
+                int offset = (fen[fen_index++] - '0');
+
+                // fix well-known FEN parsing mistake
+                if (get_piece_on_square(square) == -1) file--;
+
+                file += offset;
+            }
+
+            if (fen[fen_index] == '/') fen_index++;
+        }
     }
 
-  // init kings
-  Pos wkp{0, 4};
-  Pos bkp{7, 4};
-  board[0][4] = new King{1, wkp};
-  board[7][4] = new King{0, bkp};
+    fen[++fen_index] == 'w' ? turn = W : turn = B;
 
-  // init pawns
-  for(int j = 0; j < 8; j++) {
-    Pos wpp{1, j};
-    Pos bpp{6, j};
-    board[1][j] = new Pawn{1, wpp};
-    board[6][j] = new Pawn{0, bpp};
-  }
+    fen_index++;
+    while (fen[++fen_index] != ' ') {
+        switch (fen[fen_index]) {
+            case 'K': castlingRights |= WK; break;
+            case 'k': castlingRights |= BK; break;
+            case 'Q': castlingRights |= WQ; break;
+            case 'q': castlingRights |= BQ; break;
+            case '-': break;
+            default: Util::exitError("[Board::Board(fen)]INVALID FEN STRING"); break;
+        }
+    }
+    enpassantSquare = (fen[++fen_index] == '-') ? -1 : rf_to_square(fen[0] - 'a', 8 - (fen[1] - '0'));
 
-  // init knights
-  Pos wnp1{0, 1};
-  Pos wnp2{0, 6};
-  Pos bnp1{7, 1};
-  Pos bnp2{7, 6};
-  board[0][1] = new Knight{1, wnp1};
-  board[0][6] = new Knight{1, wnp2};
-  board[7][1] = new Knight{0, bnp1};
-  board[7][6] = new Knight{0, bnp2};
-
-  // init bishops
-  Pos wbp1{0, 2};
-  Pos wbp2{0, 5};
-  Pos bbp1{7, 2};
-  Pos bbp2{7, 5};
-  board[0][2] = new Bishop{1, wbp1};
-  board[0][5] = new Bishop{1, wbp2};
-  board[7][2] = new Bishop{0, bbp1};
-  board[7][5] = new Bishop{0, bbp2};
-
-  // init rooks
-  Pos wrp1{0, 0};
-  Pos wrp2{0, 7};
-  Pos brp1{7, 0};
-  Pos brp2{7, 7};
-  board[0][0] = new Rook{1, wrp1};
-  board[0][7] = new Rook{1, wrp2};
-  board[7][0] = new Rook{0, brp1};
-  board[7][7] = new Rook{0, brp2};
-
-  // init queens
-  Pos wqp{0, 3};
-  Pos bqp{7, 3};
-  board[0][3] = new Queen{1, wqp};
-  board[7][3] = new Queen{0, bqp};
+    // important to init board !!
+    update_occupancies();
 }
 
-void Board::display() {
-  std::string line = "  ";
-  for(int i = 0; i < 8; i++)
-    line += " ----";
-  line += "\n";
+void Board::update_occupancies() {
+    // learned that fill is not the best way to set all bits to 0 for contiguous memory
+    // it is more for containers that do not have contiguous memory, like lists/vectors
+    // with custom allocators
+    std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
+    // OPTI: still seems to be the same speed ?
+    // std::memset(occupancies, 0, sizeof(occupancies));
 
-  std::string out = line;
-  for(int i = 7; i >= 0; i--) {
-    char row = ('1' + i);
-    std::string row1{row};
-    out += row1 + " ";
-    for(int j = 0; j < 8; j++) {
-      out += "| ";
-      Piece *p = board[i][j];
-      if(p == nullptr)
-        out += "   ";
-      else {
-        if(p->color == 0)
-          out += "b";
+    for (int p = PAWN; p <= KING; p++)
+        occupancies[W] |= bitboards[p];
+    for (int p = pawn; p <= king; p++)
+        occupancies[B] |= bitboards[p];
+
+    occupancies[WB] |= occupancies[W] | occupancies[B];
+}
+
+void Board::init_attacks() {
+    for (int square = 0; square < 64; square++) {
+        pawnAttacks[W][square] = Pawn::get_attack_mask(W, square);
+        pawnAttacks[B][square] = Pawn::get_attack_mask(B, square);
+        knightAttacks[square] = Knight::get_attack_mask(square);
+        kingAttacks[square] = King::get_attack_mask(square);
+    }
+}
+
+void Board::clear_board() {
+    // OPTI: can i fill from bitboards to occupancies ? aren't they contiguous in memory ?
+    std::fill(std::begin(bitboards), std::end(bitboards), 0ULL);
+    std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
+    turn = W;
+    ply = 0;
+    enpassantSquare = -1;
+    castlingRights = 0;
+    for (int i = 0; i < 64; i++)
+        pieceOnSquare[i] = 12;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              helper functions                              */
+/* -------------------------------------------------------------------------- */
+
+std::ostream &operator<<(std::ostream &os, const Board &board) {
+    // TODO: ?: add sanity checks for board state variables somewhere?
+    const std::string footer = "    a    b    c    d    e    f    g    h";
+    const std::string emptySquare = "   ";
+
+    std::string line = "  ";
+    for (int i = 0; i < 8; i++)
+        line += " ----";
+    line += "\n";
+
+    std::string output = line;
+
+    for (int rank = 0; rank < 8; ++rank) {
+        output += std::to_string(8 - rank) + " ";
+        for (int file = 0; file < 8; ++file) {
+            output += "| ";
+            int square = rf_to_square(rank, file);
+
+            int piece = -1;
+
+            for (int i = 0; i < 12; i++) {
+                if (get_bit(board.bitboards[i], square)) {
+                    piece = i;
+                    break;
+                }
+            }
+            std::string pieceRepr = (piece == -1 ? " " : std::string(1, letter_pieces[piece]));
+            output += get_bit(board.bitboards[piece], square) ? pieceRepr + "  " : emptySquare;
+        }
+        output += "|\n" + line;
+    }
+
+    os << "Turn: " << (!board.turn ? "White" : "Black") << std::endl;
+    os << "Enpassant: " << (board.enpassantSquare != -1 ? sq_to_coord(board.enpassantSquare) : "xx");
+    os << "\tCastling: " << (board.castlingRights & WK ? "WK " : "x") << (board.castlingRights & WQ ? "WQ " : "x")
+       << (board.castlingRights & BK ? "BK " : "x") << (board.castlingRights & BQ ? "BQ " : "x") << std::endl;
+
+    output += footer;
+    os << output << std::endl;
+
+    return os;
+}
+
+int Board::get_piece_on_square(int square) {
+    for (int p = PAWN; p <= king; p++)
+        if (get_bit(bitboards[p], square)) return p;
+    return -1;
+}
+
+bool Board::is_empty(int square) {
+    return !get_bit(occupancies[WB], square);
+}
+
+int Board::get_color_piece(int piece, int color) {
+    if (piece >= PAWN && piece <= KING) {
+        return (color == W) ? piece : piece + 6;
+    } else if (piece >= pawn && piece <= king) {
+        return (color == W) ? piece - 6 : piece;
+    }
+    return piece;
+}
+
+int Board::find_king(int color) {
+    return get_lsb_index(bitboards[get_color_piece(KING, color)]);
+}
+
+bool Board::playerInCheck(int color) {
+    return is_attacked(find_king(color), 1 - color);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                move parsing                                */
+/* -------------------------------------------------------------------------- */
+
+#define DEBUG 0
+
+int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture) {
+
+    if (onlyCapture) {
+        if (move.get_capture())
+            make_move(move, justCheckCheck, false);
         else
-          out += "w";
-        if(p->type == 0)
-          out += "P ";
-        if(p->type == 1)
-          out += "N ";
-        if(p->type == 2)
-          out += "B ";
-        if(p->type == 3)
-          out += "R ";
-        if(p->type == 4)
-          out += "Q ";
-        if(p->type == 5)
-          out += "K ";
-      }
+            return 0;
     }
-    out += "|\n" + line;
-  }
-  out += "    a    b    c    d    e    f    g    h";
-  std::cout << out << std::endl;
+
+    // OPTI: explore using stacks OR making an unmake_move function for undoing moves
+    // save board state for potential undo at end of function
+    BoardState savedState(*this);
+
+    int from = move.get_from();
+    int to = move.get_to();
+
+    int captured = to;
+    // std::cout << pieceOnSquare[from] << std::endl;
+    pieceOnSquare[to] = pieceOnSquare[from];
+    pieceOnSquare[from] = 12;
+
+    if (DEBUG)
+        std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to)
+                  << letter_pieces[move.get_promotion_piece()] << std::endl;
+
+    /* ----------------------------- regular capture ---------------------------- */
+    // OPTI: minimal: variation of get_piece_on_square with enemy color to avoid iterating over 6 bitboards
+    if (move.get_capture()) {
+        if (DEBUG) std::cout << "!!!capturing piece: " << letter_pieces[get_piece_on_square(to)] << std::endl;
+        // if (DEBUG) std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
+        clear_bit(bitboards[get_piece_on_square(to)], to);
+        // if (DEBUG) std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
+    }
+
+    /* ------------------------------- move piece ------------------------------- */
+    // if (DEBUG) std::cout << "-*---*-BEFORE MOVEBIT HANDLING-*---*-" << *this << std::endl;
+    move_bit(bitboards[move.get_piece()], from, to);
+    // if (DEBUG) std::cout << "-*---*-AFTER MOVEBIT HANDLING-*---*-" << *this << std::endl;
+
+    /* ------------------------------- en passant ------------------------------- */
+    if (move.get_enpassant()) {
+        if (turn == W) {
+            clear_bit(bitboards[pawn], to + 8);
+            pieceOnSquare[to + 8] = 12;
+        } else {
+            clear_bit(bitboards[PAWN], to - 8);
+            pieceOnSquare[to - 8] = 12;
+        }
+    }
+
+    // a move is made, reset previous enpassant
+    enpassantSquare = -1;
+
+    /* ---------------------------- double pawn push ---------------------------- */
+    if (move.get_doublepush()) (turn == W) ? (enpassantSquare = to + 8) : (enpassantSquare = to - 8);
+
+    /* ----------------------------- pawn promotion ----------------------------- */
+    if (move.get_promotion_piece()) {
+        clear_bit(bitboards[get_color_piece(PAWN, turn)], to);
+        set_bit(bitboards[get_color_piece(move.get_promotion_piece(), turn)], to);
+
+        pieceOnSquare[to] = get_color_piece(move.get_promotion_piece(), turn);
+    }
+
+    /* ------------------------------ king castling ----------------------------- */
+    if (move.get_castling()) {
+        // handle castling according to the castling type (in order: WK, WQ, BK, BQ)
+        switch (to) {
+            case g1:
+                move_bit(bitboards[ROOK], h1, f1);
+                pieceOnSquare[61] = pieceOnSquare[63];
+                pieceOnSquare[63] = 12;
+                break;
+            case c1:
+                move_bit(bitboards[ROOK], a1, d1);
+                pieceOnSquare[59] = pieceOnSquare[56];
+                pieceOnSquare[56] = 12;
+                break;
+            case g8:
+                move_bit(bitboards[rook], h8, f8);
+                pieceOnSquare[5] = pieceOnSquare[7];
+                pieceOnSquare[7] = 12;
+                break;
+            case c8:
+                move_bit(bitboards[rook], a8, d8);
+                pieceOnSquare[3] = pieceOnSquare[0];
+                pieceOnSquare[0] = 12;
+                break;
+        }
+    }
+
+    // update castling rights according to the move, using precalculated masks
+    castlingRights &= castlingRightsMasks[from] & castlingRightsMasks[to];
+
+    // update board state
+    update_occupancies();
+    int player = turn;
+    int enemy = 1 - turn;
+    turn = 1 - turn;
+    ply++;
+
+    // cHeCkInG cHeCkS
+    // std::cout << sq_to_coord(find_king(player)) << std::endl;
+    // std::cout << sq_to_coord(BitOps::get_lsb_index(bitboards[player == W ? KING : king])) << std::endl;
+    // std::cout << is_attacked(find_king(player), enemy) << std::endl;
+    // std::cout << is_attacked(BitOps::get_lsb_index(bitboards[player == W ? KING : king]), enemy) << std::endl;
+    if (DEBUG) std::cout << *this;
+
+    if (playerInCheck(player)) {
+        if (DEBUG)
+            std::cout << "[Board::move] INVALID MOVE, " << ((player == W) ? "WHITE" : "BLACK")
+                      << " KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to) << std::endl;
+        savedState.reapply(*this);
+        return -1;  // illegal
+    }
+
+    // restore board state if we only wanted to check for checks and not apply the move
+    if (justCheckCheck) savedState.reapply(*this);
+
+    return 0;  // legal
+}
+
+/* ------------------------------------------------------------------------ */
+/*                               attack-related                               */
+/* -------------------------------------------------------------------------- */
+
+bool Board::is_attacked(int sq, int by_color) {
+    // threatened by leaper pieces
+    if (pawnAttacks[1 - by_color][sq] & bitboards[get_color_piece(PAWN, by_color)]) return true;
+    if (knightAttacks[sq] & bitboards[get_color_piece(KNIGHT, by_color)]) return true;
+    if (kingAttacks[sq] & bitboards[get_color_piece(KING, by_color)]) return true;
+
+    // threatened by sliding pieces
+    if (Bishop::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(BISHOP, by_color)])
+        return true;
+    if (Rook::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(ROOK, by_color)]) return true;
+    if (Queen::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(QUEEN, by_color)])
+        return true;
+
+    return false;
+}
+
+void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
+    int moveLeadsToCheck = make_move(m, true);
+    if (!moveLeadsToCheck) moveVec.push_back(m);
+};
+
+BitMoveVec Board::get_all_legal_moves() {
+    BitMoveVec moves;
+    // OPTI: even more, can use a preallocated array
+    moves.reserve(256);
+
+    Pawn::add_legal_moves(*this, moves);
+    Knight::add_legal_moves(*this, moves);
+    Bishop::add_legal_moves(*this, moves);
+    Rook::add_legal_moves(*this, moves);
+    Queen::add_legal_moves(*this, moves);
+    King::add_legal_moves(*this, moves);
+
+    // Util::printDebug("[Board::FFSIZE]" + std::to_string(moves.size()));
+    // Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
+    return moves;
+}
+
+BitMoveVec Board::get_capture_moves() {
+    BitMoveVec captureMoves;
+    captureMoves.reserve(256);
+
+    Pawn::add_legal_moves(*this, captureMoves, true);
+    Knight::add_legal_moves(*this, captureMoves, true);
+    Bishop::add_legal_moves(*this, captureMoves, true);
+    Rook::add_legal_moves(*this, captureMoves, true);
+    Queen::add_legal_moves(*this, captureMoves, true);
+    King::add_legal_moves(*this, captureMoves, true);
+
+    return captureMoves;
+}
+
+void Board::perftree(int depth) {
+    BitMoveVec moves = get_all_legal_moves();
+    long long totalNodes = 0;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (const BitMove &mv : moves) {
+
+        BoardState savedState(*this);
+        if (make_move(mv) == -1) continue;
+        long nodes = perft_search(depth - 1);
+        savedState.reapply(*this);
+
+        std::cout << mv.get_algebraic_notation() << " " << nodes << std::endl;
+        totalNodes += nodes;
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    std::cout << std::endl << totalNodes << std::endl;
+}
+
+// was testing speed below
+// inline int evaluate_piece(int piece) {
+//     if (piece == -1) return 0;
+//     int p_evaluation = 0;
+//     if (piece == PAWN || piece == pawn) p_evaluation += 100;
+//     if (piece == KNIGHT || piece == knight || piece == BISHOP || piece == bishop) p_evaluation += 300;
+//     if (piece == ROOK || piece == rook) p_evaluation += 500;
+//     if (piece == QUEEN || piece == queen) p_evaluation += 900;
+//     if (piece == KING || piece == king) p_evaluation += 9000;
+//     // if piece white, positive evaluation, else negative
+//     return ((PAWN <= piece && piece <= KING) ? p_evaluation : -p_evaluation);
+// }
+
+long Board::perft_search(int depth) {
+
+    long res = 0;
+    if (depth == 0) return 1;
+    BitMoveVec moves = get_all_legal_moves();
+
+    for (const BitMove &mv : moves) {
+
+        BoardState savedState(*this);
+
+        // { // OPTI: evaluation function slows this down :( by 1.5x !! need to optimize
+        //     int evaluation = 0;
+        //     for (int i = 0; i < 8; i++)
+        //         for (int j = 0; j < 8; j++)
+        //             evaluation += evaluate_piece(get_piece_on_square(BitOps::rf_to_square(i, j)));
+        //     if (is_attacked(find_king(W), B)) {
+        //         evaluation -= 30;
+        //         BitMoveVec moves = get_all_legal_moves();
+        //         if (moves.size() == 0) return -99999;
+        //     } else if (is_attacked(find_king(B), W)) {  // if white checks black
+        //         evaluation += 30;
+        //         BitMoveVec moves = get_all_legal_moves();
+        //         if (moves.size() == 0) return 99999;
+        //     }
+        // }
+
+        if (make_move(mv) == -1) continue;
+
+        /*
+            std::cout << mv.get_piece() << std::endl;
+            std::cout << pieceOnSquare[mv.get_to()] << std::endl << "--" << std::endl;
+            std::cout << mv.get_from() << " " << mv.get_to()  << std::endl;
+            std::cout << *this << std::endl;
+        */
+        // assert(pieceOnSquare[mv.get_to()] == mv.get_piece());
+
+        res += perft_search(depth - 1);
+
+        savedState.reapply(*this);
+    }
+    return res;
+}
+
+std::string Board::getFEN() {
+    std::string fen;
+
+    // for each square
+    for (int rank = 0; rank < 8; ++rank) {
+        int emptySquares = 0;
+        for (int file = 0; file < 8; ++file) {
+            int square = rf_to_square(rank, file);
+            int piece = get_piece_on_square(square);
+            // we get the piece
+
+            if (piece == -1) {
+                ++emptySquares;  // counter for empty squares
+            } else {
+                if (emptySquares > 0) {
+                    fen += std::to_string(emptySquares);
+                    emptySquares = 0;
+                }
+                fen += letter_pieces[get_color_piece(piece, piece >= PAWN && piece <= KING ? W : B)];
+            }
+        }
+        if (emptySquares > 0) fen += std::to_string(emptySquares);
+        if (rank < 7) fen += "/";
+    }
+
+    // turn
+    fen += (turn == W ? " w " : " b ");
+    // castling
+    fen += (castlingRights == 0
+                ? "-"
+                : (std::string(castlingRights & WK ? "K" : "") + std::string(castlingRights & WQ ? "Q" : "")
+                   + std::string(castlingRights & BK ? "k" : "") + std::string(castlingRights & BQ ? "q" : "")));
+
+    std::cout << "the actual fen is : " << fen << std::endl;
+    return fen;
 }

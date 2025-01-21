@@ -19,6 +19,7 @@ The first step is to create a local copy of the repository on your computer.
 
 ## Running the code
 - ```./build/logic-and-proofs -H history_ex_1.txt -m move.txt```
+- ```./build.sh && ./build/precalc && ./build/logic-and-proofs -H history_ex_1.txt -m move.txt```
 - => should output the parsed moves in the terminal and write 'g1h3' into ```move.txt```
 
 ## Coding Workflow : **Each time** you want to code !

@@ -1,7 +1,8 @@
 #include <iostream>  // IWYU pragma: keep
+#include <cassert>
 
 #include "Board.h"  // IWYU pragma: keep
-#include "Definitions.h"
+#include "Definitions.h"  // IWYU pragma: keep
 #include "Game.h"  // IWYU pragma: keep
 #include "Parser.h"  // IWYU pragma: keep
 #include "testing/PerftTests.h"  // IWYU pragma: keep
@@ -17,14 +18,12 @@ int main(int argc, char **argv) {
     // Board board;
     // Openings openings = Openings("openings.txt");
     // Game game(board, &openings);
-    // if (game.board.turn <= 10) {
+    
+    // if (game.board.ply <= 10) {
     //     std::string move = game.playOpeningMove(argc, argv);
     //     std::cout << move << std::endl;
     // }
     // std::cout << openings.getMove(board) << std::endl;
-
-
-
 
     run_perft_tests();
 
@@ -47,8 +46,11 @@ int main(int argc, char **argv) {
 #else
 int main(int argc, char **argv) {
 
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Board board ("r1bqkbnr/pppn1ppp/3p4/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R w KQkq ");// should randomly play f1c4 or b1c3 (from openings.txt)
     Board board;
-    Openings openings = Openings("openings.txt");
+    Openings openings("openings.txt");
     Game game(board, &openings);
 
     // TOKEEP: for Visual Studio debugging
@@ -60,40 +62,25 @@ int main(int argc, char **argv) {
     Parser parser{board, argc, argv};
     parser.parseArgs();
     parser.parseHistory();
+        
+    //TODO: integrate this to the rest of the search logic
+    if (board.ply <= 20) {
+        std::string moveAlgebraicRepr = game.playOpeningMove(argc, argv);
+        std::cout << "Opening move :" << moveAlgebraicRepr << std::endl;
+        if (!moveAlgebraicRepr.empty()) {
+            parser.writeNextMove(moveAlgebraicRepr);
+            return 0;
+        }
+    }    
 
-    BitMoveVec moves = board.get_all_legal_moves();
-    std::cout << board << moves << std::endl;
-    int bestMove = -1;
     std::cout << "starting search..." << std::endl;
-    // game.search_random(bestMove);
-    // game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, -99999, 99999);
-    game.search_best_alpha_beta(bestMove, MAX_ALPHA_BETA_DEPTH, (board.turn == W) ? -99999 : 99999, -99999, 99999);
-    if (bestMove == -1) Util::exitError("no move found here in main !!");
-    // game.search_negamax_alpha_beta(MAX_ALPHA_BETA_DEPTH, 0, 99999, -99999);
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    std::cout << "bestMove ptr after search: " << bestMove << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
-    // std::cout << "bestMove ptr after search: " << bestMove << "value: " << bestMove->get_algebraic_notation()
-    //           << std::endl;
+
+    U64 bestMove = game.search(start);
+
+    if (!bestMove) Util::exitError("no move found here in main !!");
     std::cout << "how i see the board before writing next move: " << board;
     parser.writeNextMove(BitMove(bestMove).get_algebraic_notation());
 
-    // TODO: check correct parser output
-    // TODO: crucial: check that we always have a move to play
-    // int rand_int = rand() % moves.size();
-    // // std::cout << moves[rand_int] << std::endl;
-    // // parser.writeNextMove(moves[rand_int]);
-    // Chess.my_board.display();
-
     return 0;
 }
+#endif
