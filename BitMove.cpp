@@ -52,7 +52,7 @@ char get_promoted_letter(int promoted) {
 }
 
 void BitMove::print() {
-    std::cout << letter_pieces[get_piece()] << ":" << sq_to_coord(get_from()) << "->" << sq_to_coord(get_to())
+    std::cout << letter_pieces[get_piece()] << ":" << _sq_to_coord[get_from()] << "->" << _sq_to_coord[get_to()]
               << ", capflag: " << get_capture() << ", "
               << ", promoted: " << get_promoted_letter(get_promotion_piece()) << ", "
               << "doublepush: " << get_doublepush() << ", "
@@ -63,10 +63,10 @@ void BitMove::print() {
 // long algebraic notation https://en.wikipedia.org/wiki/Universal_Chess_Interface
 std::string BitMove::get_algebraic_notation() const {
     if (get_promotion_piece())
-        return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to())
+        return std::string(_sq_to_coord[get_from()]) + _sq_to_coord[get_to()]
                + static_cast<char>(std::tolower(get_promoted_letter(get_promotion_piece())));
     else
-        return std::string(sq_to_coord(get_from())) + sq_to_coord(get_to());
+        return std::string(_sq_to_coord[get_from()]) + _sq_to_coord[get_to()];
 }
 
 /* ------------------------------- BitMoveVec ------------------------------- */
@@ -82,7 +82,7 @@ std::ostream& operator<<(std::ostream& os, const BitMoveVec& moves) {
     os << "\n     move    piece     capture   double    enpass    castling\n\n";
 
     for (const BitMove& move : moves) {
-        os << "     " << sq_to_coord(move.get_from()) << sq_to_coord(move.get_to())
+        os << "     " << _sq_to_coord[move.get_from()] << _sq_to_coord[move.get_to()]
            << (move.get_promotion_piece() ? get_promoted_letter(move.get_promotion_piece()) : ' ') << "   "
            << letter_pieces[move.get_piece()] << "         " << (move.get_capture() ? 1 : 0) << "         "
            << (move.get_doublepush() ? 1 : 0) << "         " << (move.get_enpassant() ? 1 : 0) << "         "

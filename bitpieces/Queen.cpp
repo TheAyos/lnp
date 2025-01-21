@@ -9,11 +9,13 @@ using namespace BitOps;
 namespace Queen {
     // FIXME: watch out for types, don't use int instead of U64 !!
     // OPTI https://www.chessprogramming.org/Magic_Bitboards
-    U64 get_attack_masks_blocking(int square, U64 blocking_square) {
+    U64 get_attack_masks_blocking(Board& board, int square, U64 blocking_square) {
         U64 attacks = 0ULL;
 
-        attacks = Bishop::get_attack_masks_blocking(square, blocking_square);
-        attacks |= Rook::get_attack_masks_blocking(square, blocking_square);
+        // attacks = Bishop::get_attack_masks_blocking_slow(square, blocking_square);
+        // attacks |= Rook::get_attack_masks_blocking_slow(square, blocking_square);
+        attacks = Bishop::get_attack_masks_blocking_magic(board, square, blocking_square);
+        attacks |= Rook::get_attack_masks_blocking_magic(board, square, blocking_square);
 
         return attacks;
     }
@@ -29,7 +31,7 @@ namespace Queen {
             int from = get_lsb_index(bb);
 
             // not capturing own pieces
-            attacks = get_attack_masks_blocking(from, board.occupancies[WB]) & ~board.occupancies[turn];
+            attacks = get_attack_masks_blocking(board, from, board.occupancies[WB]) & ~board.occupancies[turn];
 
             while (attacks) {
                 int to = get_lsb_index(attacks);

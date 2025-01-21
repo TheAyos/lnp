@@ -5,7 +5,7 @@
 using namespace BitOps;
 void BitIterator::next() {
     if (bb)
-        current = count_bits((bb & -bb) - 1);
+        current = pop_count_bits((bb & -bb) - 1);
 }
 
 BitIterator::BitIterator(U64 bitboard) : bb(bitboard) {

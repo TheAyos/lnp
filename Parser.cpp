@@ -66,7 +66,7 @@ void Parser::parseHistory() {
 
         if (DEBUG) std::cout << "[Parser] " << from_square << "->" << to_square << std::endl;
         if (DEBUG)
-            std::cout << "[Parser] " << sq_to_coord(from_square) << "->" << sq_to_coord(to_square) << "==>"
+            std::cout << "[Parser] " << _sq_to_coord[from_square] << "->" << _sq_to_coord[to_square] << "==>"
                       << promotion_piece << std::endl;
 
         BitMove line_move = parse_algebraic_move(from_square, to_square, promotion_piece);

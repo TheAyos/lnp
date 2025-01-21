@@ -105,9 +105,8 @@ void Board::update_occupancies() {
     // learned that fill is not the best way to set all bits to 0 for contiguous memory
     // it is more for containers that do not have contiguous memory, like lists/vectors
     // with custom allocators
-    std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
-    // OPTI: still seems to be the same speed ?
-    // std::memset(occupancies, 0, sizeof(occupancies));
+    //std::fill(std::begin(occupancies), std::end(occupancies), 0ULL);
+    std::memset(occupancies, 0, sizeof(occupancies));
 
     for (int p = PAWN; p <= KING; p++)
         occupancies[W] |= bitboards[p];
@@ -116,14 +115,17 @@ void Board::update_occupancies() {
 
     occupancies[WB] |= occupancies[W] | occupancies[B];
 }
-
 void Board::init_attacks() {
     for (int square = 0; square < 64; square++) {
         pawnAttacks[W][square] = Pawn::get_attack_mask(W, square);
         pawnAttacks[B][square] = Pawn::get_attack_mask(B, square);
         knightAttacks[square] = Knight::get_attack_mask(square);
         kingAttacks[square] = King::get_attack_mask(square);
+        rookSlidingMasks[square] = Rook::get_sliding_mask(square);
+        bishopSlidingMasks[square] = Bishop::get_sliding_mask(square);
     }
+    Rook::initMagics(*this);
+    Bishop::initMagics(*this);
 }
 
 void Board::clear_board() {
@@ -175,7 +177,7 @@ std::ostream &operator<<(std::ostream &os, const Board &board) {
     }
 
     os << "Turn: " << (!board.turn ? "White" : "Black") << std::endl;
-    os << "Enpassant: " << (board.enpassantSquare != -1 ? sq_to_coord(board.enpassantSquare) : "xx");
+    os << "Enpassant: " << (board.enpassantSquare != -1 ? _sq_to_coord[board.enpassantSquare] : "xx");
     os << "\tCastling: " << (board.castlingRights & WK ? "WK " : "x") << (board.castlingRights & WQ ? "WQ " : "x")
        << (board.castlingRights & BK ? "BK " : "x") << (board.castlingRights & BQ ? "BQ " : "x") << std::endl;
 
@@ -240,7 +242,7 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     pieceOnSquare[from] = 12;
 
     if (DEBUG)
-        std::cout << "[Board::move] Trying to move :" << sq_to_coord(from) << sq_to_coord(to)
+        std::cout << "[Board::move] Trying to move :" << _sq_to_coord[from] << _sq_to_coord[to]
                   << letter_pieces[move.get_promotion_piece()] << std::endl;
 
     /* ----------------------------- regular capture ---------------------------- */
@@ -319,17 +321,12 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     turn = 1 - turn;
     ply++;
 
-    // cHeCkInG cHeCkS
-    // std::cout << sq_to_coord(find_king(player)) << std::endl;
-    // std::cout << sq_to_coord(BitOps::get_lsb_index(bitboards[player == W ? KING : king])) << std::endl;
-    // std::cout << is_attacked(find_king(player), enemy) << std::endl;
-    // std::cout << is_attacked(BitOps::get_lsb_index(bitboards[player == W ? KING : king]), enemy) << std::endl;
     if (DEBUG) std::cout << *this;
 
     if (playerInCheck(player)) {
         if (DEBUG)
             std::cout << "[Board::move] INVALID MOVE, " << ((player == W) ? "WHITE" : "BLACK")
-                      << " KING IN CHECK :" << sq_to_coord(from) << "->" << sq_to_coord(to) << std::endl;
+                      << " KING IN CHECK :" << _sq_to_coord[from] << "->" << _sq_to_coord[to] << std::endl;
         savedState.reapply(*this);
         return -1;  // illegal
     }
@@ -351,10 +348,10 @@ bool Board::is_attacked(int sq, int by_color) {
     if (kingAttacks[sq] & bitboards[get_color_piece(KING, by_color)]) return true;
 
     // threatened by sliding pieces
-    if (Bishop::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(BISHOP, by_color)])
+    if (Bishop::get_attack_masks_blocking_magic(*this,sq, occupancies[WB]) & bitboards[get_color_piece(BISHOP, by_color)])
         return true;
-    if (Rook::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(ROOK, by_color)]) return true;
-    if (Queen::get_attack_masks_blocking(sq, occupancies[WB]) & bitboards[get_color_piece(QUEEN, by_color)])
+    if (Rook::get_attack_masks_blocking_magic(*this, sq, occupancies[WB]) & bitboards[get_color_piece(ROOK, by_color)]) return true;
+    if (Queen::get_attack_masks_blocking(*this, sq, occupancies[WB]) & bitboards[get_color_piece(QUEEN, by_color)])
         return true;
 
     return false;
@@ -362,7 +359,7 @@ bool Board::is_attacked(int sq, int by_color) {
 
 void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
     int moveLeadsToCheck = make_move(m, true);
-    if (!moveLeadsToCheck) moveVec.push_back(m);
+    if (!moveLeadsToCheck) moveVec.emplace_back(m); // optimization
 };
 
 BitMoveVec Board::get_all_legal_moves() {
@@ -414,7 +411,7 @@ void Board::perftree(int depth) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    std::cout << std::endl << totalNodes << std::endl;
+    std::cout << std::endl << totalNodes << " time " << duration << std::endl;
 }
 
 // was testing speed below
