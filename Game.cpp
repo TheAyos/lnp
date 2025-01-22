@@ -9,6 +9,7 @@
 #include "BitMove.h"
 #include "Board.h"
 #include "Definitions.h"
+#include "Evaluation.h"
 
 // FIXME: safety handling & find a better way of passing object instances
 // FIXME: invalid move to init
@@ -79,6 +80,54 @@ void Game::search_random(U64& bestMove) {
 //     return bestValue;
 // }
 
+/*
+_______
+MVV_LVA
+more valuable the captured piece is, and less valuable the attacker is, 
+the stronger the capture will be
+_______
+
+    (Victims) Pawn Knight Bishop   Rook  Queen   King
+  (Attackers)
+        Pawn   105    205    305    405    505    605
+      Knight   104    204    304    404    504    604
+      Bishop   103    203    303    403    503    603
+        Rook   102    202    302    402    502    602
+       Queen   101    201    301    401    501    601
+        King   100    200    300    400    500    600
+
+*/
+int MVV_LVA[12][12] = 
+{
+ 	105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+	104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+	103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+	102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+	101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600,
+
+	105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+	104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+	103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+	102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+	101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
+};
+
+//get move score from a move 
+int Game::get_MVV_LVA_score(const BitMove& move) {
+    int victim = board.get_piece_on_square(move.get_to());
+    int attacker = move.get_piece();
+    return (victim >= 0) ? MVV_LVA[victim][attacker] : 0; // if not capture = 0
+}
+
+void Game::sort_moves_by_MVV_LVA(BitMoveVec& moves) {
+    std::sort(moves.begin(), moves.end(), [&](const BitMove& a, const BitMove& b) { // [&] = lambda notation
+        return get_MVV_LVA_score(a) > get_MVV_LVA_score(b);
+    });
+}
+
+
 U64 Game::search(std::chrono::time_point<std::chrono::high_resolution_clock> start) {
     auto end = start + std::chrono::seconds(MAX_SEARCH_TIME_S);  // time constraint
 
@@ -132,7 +181,7 @@ int Game::search_best_alpha_beta(U64& bestMove,
     }
     // FIXME: testing for improvement, still need to understand and fix quiescence_search
     // if (depth == 0) return quiescence_search(bestMove, initial_depth, depth, alpha, beta, end);
-    if (depth == 0) return evaluate();
+    if (depth == 0) return Evaluation::eval(board);
 
     nSearchedNodes++;
 
@@ -142,7 +191,10 @@ int Game::search_best_alpha_beta(U64& bestMove,
     BitMoveVec moves = board.get_all_legal_moves();
 
     /* ------------------------------ move ordering ----------------------------- */
-    // move last best move to the front
+    //MVV_LVA sorting
+    sort_moves_by_MVV_LVA(moves);
+    
+    /*
     if (initial_depth == depth && globalBestMove != 0) {
         auto it = std::find_if(
             moves.begin(), moves.end(), [&](const BitMove& move) { return move.get_bit_repr() == globalBestMove; });
@@ -150,6 +202,7 @@ int Game::search_best_alpha_beta(U64& bestMove,
             std::iter_swap(moves.begin(), it);
         }
     }
+    */
 
     for (const auto& move : moves) {
         BoardState savedState(board);
@@ -211,6 +264,7 @@ int Game::quiescence_search(U64& bestMove,
     //     return search_best_alpha_beta(bestMove, initial_depth, depth, alpha, beta, end);
 
     int eval = evaluate();
+    // int eval = Evaluation::eval();
     if (eval >= beta) return beta;
     if (alpha < eval) alpha = eval;
 

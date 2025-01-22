@@ -39,4 +39,9 @@ class Game {
     int search_best_alpha_beta(U64& bestMove, int initial_depth, int depth, int alpha, int beta, std::chrono::time_point<std::chrono::high_resolution_clock> end);
     // avoid horizon effect, first parameters are only for fallback on alpha beta
     int quiescence_search(U64& bestMove, int initial_depth, int depth, int alpha, int beta, std::chrono::time_point<std::chrono::high_resolution_clock> end);
+
+    //MVV-LVA
+    int get_MVV_LVA_score(const BitMove& move);
+    void sort_moves_by_MVV_LVA(BitMoveVec& moves);
+    
 };

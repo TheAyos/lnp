@@ -27,7 +27,9 @@ add_library(headers
             bitpieces/Pawn.h bitpieces/Pawn.cpp bitpieces/Knight.h bitpieces/Knight.cpp
             bitpieces/Queen.h bitpieces/Queen.cpp bitpieces/King.h bitpieces/King.cpp
             bitpieces/Bishop.h bitpieces/Bishop.cpp bitpieces/Rook.h bitpieces/Rook.cpp
-            Openings.h Openings.cpp)
+            Openings.h Openings.cpp
+            Evaluator.h
+            Evaluation.h)
 
 add_executable(logic-and-proofs main.cpp)
 target_link_libraries(logic-and-proofs PRIVATE headers)
