@@ -13,6 +13,7 @@
 #include "bitpieces/Pawn.h"
 #include "bitpieces/Queen.h"
 #include "bitpieces/Rook.h"
+// #include "Zobrist.h"
 
 using namespace BitOps;
 
@@ -42,6 +43,20 @@ Board::Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
             else
                 pieceOnSquare[ridx] = 12;
         }
+
+    for(int i = 0; i < 512; i++) {
+	this->history[i].ep = -1;
+	this->history[i].hash = 0;
+    }
+
+    for (int i = 0; i < 64; i++ ) {
+	if (pieceOnSquare[i] < 12) {
+	    int color = (i < 6) ? W : B;
+	    Zobrist::flip_sq(this->history[0].hash, i, pieceOnSquare[i]%6, color);
+	}
+    }
+
+    ply = 0;
 };
 
 // TODO: FIXME: OPTI: fixcpcpcpc
@@ -99,6 +114,14 @@ Board::Board(const std::string &fen) {
 
     // important to init board !!
     update_occupancies();
+}
+
+U64 Board::get_hash() const noexcept { return this->history[ply].hash; }
+
+bool Board::isThreefold() const noexcept {
+    for (size_t i = 0; i < ply; i++)
+	if (history[i].hash == history[ply].hash) return true;
+    return false;
 }
 
 void Board::update_occupancies() {
@@ -236,10 +259,18 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     int from = move.get_from();
     int to = move.get_to();
 
-    int captured = to;
+    // int captured = to;
+    int captured_piece = pieceOnSquare[to]%6;
     // std::cout << pieceOnSquare[from] << std::endl;
     pieceOnSquare[to] = pieceOnSquare[from];
     pieceOnSquare[from] = 12;
+    int new_piece = pieceOnSquare[to]%6;
+
+    // zobrist init
+    ply++;
+    history[ply].hash = history[ply-1].hash;
+    
+    Zobrist::flip_sq(this->history[ply].hash, from, new_piece, turn); // remove old piece
 
     if (DEBUG)
         std::cout << "[Board::move] Trying to move :" << _sq_to_coord[from] << _sq_to_coord[to]
@@ -252,6 +283,7 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
         // if (DEBUG) std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
         clear_bit(bitboards[get_piece_on_square(to)], to);
         // if (DEBUG) std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
+	Zobrist::flip_sq(this->history[ply].hash, to, captured_piece, turn);
     }
 
     /* ------------------------------- move piece ------------------------------- */
@@ -282,6 +314,7 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
         set_bit(bitboards[get_color_piece(move.get_promotion_piece(), turn)], to);
 
         pieceOnSquare[to] = get_color_piece(move.get_promotion_piece(), turn);
+	new_piece = pieceOnSquare[to]%6;
     }
 
     /* ------------------------------ king castling ----------------------------- */
@@ -292,24 +325,36 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
                 move_bit(bitboards[ROOK], h1, f1);
                 pieceOnSquare[61] = pieceOnSquare[63];
                 pieceOnSquare[63] = 12;
+		Zobrist::flip_sq(this->history[ply].hash, 61, ROOK, turn);
+		Zobrist::flip_sq(this->history[ply].hash, 63, ROOK, turn);
                 break;
             case c1:
                 move_bit(bitboards[ROOK], a1, d1);
                 pieceOnSquare[59] = pieceOnSquare[56];
                 pieceOnSquare[56] = 12;
+		Zobrist::flip_sq(this->history[ply].hash, 59, ROOK, turn);
+		Zobrist::flip_sq(this->history[ply].hash, 56, ROOK, turn);
                 break;
             case g8:
                 move_bit(bitboards[rook], h8, f8);
                 pieceOnSquare[5] = pieceOnSquare[7];
                 pieceOnSquare[7] = 12;
+		Zobrist::flip_sq(this->history[ply].hash, 5, ROOK, turn);
+		Zobrist::flip_sq(this->history[ply].hash, 7, ROOK, turn);
                 break;
             case c8:
                 move_bit(bitboards[rook], a8, d8);
                 pieceOnSquare[3] = pieceOnSquare[0];
                 pieceOnSquare[0] = 12;
+		Zobrist::flip_sq(this->history[ply].hash, 3, ROOK, turn);
+		Zobrist::flip_sq(this->history[ply].hash, 0, ROOK, turn);
                 break;
         }
     }
+    
+    // the new piece on the destination square
+    // std::cout << "CURRENT TURN " << turn << std::endl; 
+    Zobrist::flip_sq(this->history[ply].hash, to, new_piece, turn); // add the new piece
 
     // update castling rights according to the move, using precalculated masks
     castlingRights &= castlingRightsMasks[from] & castlingRightsMasks[to];
@@ -319,7 +364,17 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     int player = turn;
     int enemy = 1 - turn;
     turn = 1 - turn;
-    ply++;
+    history[ply].ep = enpassantSquare;
+    // history[ply].castling = castlingRights;
+    
+    
+    if (auto p_ep = this->history[ply-1].ep; p_ep != enpassantSquare) {
+	Zobrist::flip_ep(this->history[ply].hash, enpassantSquare);
+	Zobrist::flip_ep(this->history[ply].hash, p_ep);
+    }
+    
+    Zobrist::flip_color(this->history[ply].hash);
+
 
     if (DEBUG) std::cout << *this;
 

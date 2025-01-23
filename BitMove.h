@@ -44,6 +44,7 @@ class BitMove {
     std::string get_algebraic_notation() const;
 
     bool operator==(const BitMove &move) const noexcept {return this->m_bit == move.m_bit;}
+    bool is_defined() const noexcept {return m_bit != 0;}
 
     inline U64 get_bit_repr() const {
         return m_bit;

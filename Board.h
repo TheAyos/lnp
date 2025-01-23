@@ -4,6 +4,7 @@
 
 #include "BitMove.h"
 #include "Definitions.h"
+#include "Zobrist.h"
 
 // TODO: replace with references where possible, should speed boost if understood correctly
 class Board {
@@ -32,6 +33,19 @@ class Board {
 
     // to speed up piece lookup
     int pieceOnSquare[64];
+
+    struct Info {
+        U64 hash;
+	int ep;
+	// std::array<int, 2> castling;
+	// int captured;
+    };
+    
+    Info history[512];
+    
+    U64 get_hash() const noexcept;
+
+    bool isThreefold() const noexcept;
 
     /* ----------------------- constructor & board-related ---------------------- */
 
@@ -125,6 +139,7 @@ class BoardState {
     int castlingRights;
     int ply;
     int pieceOnSquare[64];
+    Board::Info history[512];
 
     BoardState(const Board &board) {
         // std::copy(std::begin(board.bitboards), std::end(board.bitboards), std::begin(bitboards));
@@ -135,6 +150,7 @@ class BoardState {
         std::memcpy(bitboards, board.bitboards, sizeof(bitboards));
         std::memcpy(occupancies, board.occupancies, sizeof(occupancies));
 	    std::memcpy(pieceOnSquare, board.pieceOnSquare, sizeof(pieceOnSquare));
+	std::memcpy(history, board.history, sizeof(history));
 
         turn = board.turn;
         ply = board.ply;
@@ -150,7 +166,8 @@ class BoardState {
         // memcpy significantly faster !
         std::memcpy(board.bitboards, bitboards, sizeof(bitboards));
         std::memcpy(board.occupancies, occupancies, sizeof(occupancies));
-	    std::memcpy(board.pieceOnSquare, pieceOnSquare, sizeof(pieceOnSquare));
+	std::memcpy(board.pieceOnSquare, pieceOnSquare, sizeof(pieceOnSquare));
+	std::memcpy(board.history, history, sizeof(history));
 
         board.turn = turn;
         board.ply = ply;

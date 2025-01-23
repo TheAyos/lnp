@@ -59,3 +59,8 @@ c8c2
 h1g1
 g6h7
 b5b4
+h7g7
+c1d2
+g7h7
+d2c1
+h7g7

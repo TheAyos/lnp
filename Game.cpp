@@ -11,6 +11,7 @@
 #include "Definitions.h"
 #include "Evaluation.h"
 #include "MoveOrdering.h"
+#include "TT.h"
 
 // FIXME: safety handling & find a better way of passing object instances
 // FIXME: invalid move to init
@@ -233,50 +234,6 @@ int Game::quiescence_search(U64& bestMove,
     }
 
     return alpha;
-}
-
-int Game::evaluate() {
-    int evaluation = 0;
-
-    for (int i = 0; i < 8; i++)
-        for (int j = 0; j < 8; j++)
-            evaluation += evaluate_piece(board.pieceOnSquare[i * 8 + j], i, j);
-
-    // TODO: use justCheckCheck on board.move()
-    // TODO: crucial: what score to put for checking here ?
-    // if black checks white
-    if (board.is_attacked(board.find_king(W), B)) {
-        evaluation -= 50;
-        MoveList moves = board.get_all_legal_moves();
-        if (moves.size() == 0) return -INFTY;
-
-    } else if (board.is_attacked(board.find_king(B), W)) {  // if white checks black
-        evaluation += 50;
-        MoveList moves = board.get_all_legal_moves();
-        if (moves.size() == 0) return INFTY;
-    }
-    return evaluation;
-}
-
-int Game::evaluate_piece(int piece, int rank, int file) {
-    if (piece == 12) return 0;
-    int piecetype = piece % 6;
-    int color = (piece > 5) ? 0 : 1;
-
-    static const int material_values[] = {100, 320, 330, 500, 900, 10000};
-    int base_value = material_values[piecetype];
-
-    int positional_bonus = 0;
-    switch (piecetype) {
-        case PAWN: positional_bonus = color ? pawn_table[rank][file] : pawn_table[7 - rank][file]; break;
-        case KNIGHT: positional_bonus = color ? knight_table[rank][file] : knight_table[7 - rank][file]; break;
-        case BISHOP: positional_bonus = color ? bishop_table[rank][file] : bishop_table[7 - rank][file]; break;
-        case ROOK: positional_bonus = color ? rook_table[rank][file] : rook_table[7 - rank][file]; break;
-        case QUEEN: positional_bonus = color ? queen_table[rank][file] : queen_table[7 - rank][file]; break;
-        case KING: positional_bonus = color ? king_table[rank][file] : king_table[7 - rank][file]; break;
-    }
-    int value = base_value + positional_bonus;
-    return (color ? value : -value);
 }
 
 // get opening move
