@@ -20,17 +20,19 @@
 
 #if TESTING
 int main(int argc, char **argv) {
-    // Board board;
-    // Openings openings = Openings("openings.txt");
-    // Game game(board, &openings);
+    //TESTING openings
+    /* Board board;
+    Openings openings = Openings("openings.txt");
+    Game game(board, &openings);
 
-    // if (game.board.ply <= 10) {
-    //     std::string move = game.playOpeningMove(argc, argv);
-    //     std::cout << move << std::endl;
-    // }
-    // std::cout << openings.getMove(board) << std::endl;
+    if (game.board.ply <= 10) {
+        std::string move = game.playOpeningMove(argc, argv);
+        std::cout << move << std::endl;
+    }
+    std::cout << openings.getMove(board) << std::endl;*/
 
-    // run_perft_tests();
+    // TESING performance
+    /*run_perft_tests();*/
 
     // DEBUGGING: to debug move generation in details at higher depths
     // inspired by https://github.com/agausmann/perftree to find bugs in movegen, comparing with stockfish
@@ -58,13 +60,13 @@ int main(int argc, char **argv) {
     
     std::cout << "Hello" << std::endl;
     // TESTING: visualize moves one by one
-    // BoardState state (board);
-    // for (auto &move : moves) {
-    //     board.move(move);
-    //     std::cout << board << std::endl;
-    //     state.reapply(board);
-    //     std::cin.get();
-    // }
+    /*BoardState state (board);
+    for (auto &move : moves) {
+        board.move(move);
+        std::cout << board << std::endl;
+        state.reapply(board);
+        std::cin.get();
+    }*/
     return 0;
 }
 #else
