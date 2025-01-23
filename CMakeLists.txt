@@ -20,6 +20,10 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,stack-size=10000000
 include_directories(.)
 
 add_library(headers
+	    Evaluator.h
+	    Evaluation.h
+	    MoveOrdering.h
+	    PV.h
             Parser.h Parser.cpp
             Definitions.h Definitions.cpp
             Board.h Board.cpp BitMove.h BitMove.cpp BitOps.h BitOps.cpp # BitIterator.h BitIterator.cpp

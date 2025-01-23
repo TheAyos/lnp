@@ -95,13 +95,17 @@ class Board {
     bool is_attacked(int square, int by_color);
 
     // add a move to a move vector only if it is legal (i.e. does not lead to piece capture nor king in check)
-    void add_move_if_legal(BitMoveVec &moveVec, const BitMove &m);
+    template <MoveList::Type T>
+    void add_move_if_legal(MoveList &moves, const BitMove &m) {
+	int moveLeadsToCheck = make_move(m, true);
+	if (!moveLeadsToCheck) moves.push<T>(m);
+    }
 
     // generate all legal moves for the current board configuration, using the bitpieces/* functions
-    BitMoveVec get_all_legal_moves();
+    MoveList get_all_legal_moves();
 
     // generate capture moves only (useful for quiescence search)
-    BitMoveVec get_capture_moves();
+    MoveList get_capture_moves();
 
     // for debugging purposes, output to be compared with stockfish
     void perftree(int depth);

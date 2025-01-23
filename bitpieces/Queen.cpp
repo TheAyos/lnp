@@ -20,7 +20,7 @@ namespace Queen {
         return attacks;
     }
 
-    void add_legal_moves(Board &board, BitMoveVec &moves, bool onlyCaptures) {
+    void add_legal_moves(Board &board, MoveList &moves, bool onlyCaptures) {
         int turn = board.turn;
         U64 bb, attacks;
 
@@ -38,7 +38,12 @@ namespace Queen {
 
                 bool isCapture = get_bit(board.occupancies[1 - turn], to);
                 if (!onlyCaptures || isCapture) {
-                    board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+	 	    // MoveList::Type T = isCapture ? MoveList::Quiet : MoveList::Attack; 
+		    if (isCapture)
+                    	board.add_move_if_legal<MoveList::Attack>(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+		    else
+			board.add_move_if_legal<MoveList::Quiet>(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+
                 }
                 clear_bit(attacks, to);
             }

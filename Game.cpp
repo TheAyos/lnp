@@ -10,6 +10,7 @@
 #include "Board.h"
 #include "Definitions.h"
 #include "Evaluation.h"
+#include "MoveOrdering.h"
 
 // FIXME: safety handling & find a better way of passing object instances
 // FIXME: invalid move to init
@@ -22,7 +23,7 @@ Game::Game(Board& board, Openings* openings) : board(board), openings(openings),
 
 // TOKEEP: for debugging purposes
 void Game::search_random(U64& bestMove) {
-    BitMoveVec moves = board.get_all_legal_moves();
+    MoveList moves = board.get_all_legal_moves();
     // std::cout << "---------------[search_random]: moves: " << std::endl;
     // std::cout << "---------------[search_random]: moves: " << std::endl;
     // std::cout << board << moves;
@@ -31,7 +32,7 @@ void Game::search_random(U64& bestMove) {
     srand(time(0));
     if (!moves.size()) Util::exitError("search_random: no moves generated !!");
     bestMove = moves[rand() % moves.size()].get_bit_repr();
-    // std::cout << "[search_random]: " << sq_to_coord(bestMove->get_from()) << ", " << sq_to_coord(bestMove->get_to())
+    // std::cout << "[search_random]: " << sq_to_coord(bestMove->get_from()) << ", " << sq_t'/home/siyuan-lu/csproject/logic-and-proofs/Game.cpp' o_coord(bestMove->get_to())
     //           << ", " << bestMove->get_algebraic_notation() << std::endl;
     std::cout << "[search_random]: " << BitMove(bestMove).get_algebraic_notation() << std::endl;
 }
@@ -188,21 +189,18 @@ int Game::search_best_alpha_beta(U64& bestMove,
     int bestValue = (board.turn == W) ? -INFTY : INFTY;
     int score = 0;
 
-    BitMoveVec moves = board.get_all_legal_moves();
+    MoveList moves = board.get_all_legal_moves();
 
     /* ------------------------------ move ordering ----------------------------- */
-    //MVV_LVA sorting
-    sort_moves_by_MVV_LVA(moves);
-    
-    /*
-    if (initial_depth == depth && globalBestMove != 0) {
+    // move last best move to the front
+    /* if (initial_depth == depth && globalBestMove != 0) {
         auto it = std::find_if(
             moves.begin(), moves.end(), [&](const BitMove& move) { return move.get_bit_repr() == globalBestMove; });
         if (it != moves.end()) {
             std::iter_swap(moves.begin(), it);
         }
-    }
-    */
+    }*/
+    MoveOrdering::MVV_LVA(board, moves);
 
     for (const auto& move : moves) {
         BoardState savedState(board);
@@ -263,13 +261,16 @@ int Game::quiescence_search(U64& bestMove,
     // if (board.playerInCheck(board.turn))
     //     return search_best_alpha_beta(bestMove, initial_depth, depth, alpha, beta, end);
 
-    int eval = evaluate();
-    // int eval = Evaluation::eval();
+    // int eval = evaluate();
+    int eval = Evaluation::eval(board);
     if (eval >= beta) return beta;
     if (alpha < eval) alpha = eval;
 
-    BitMoveVec captures = board.get_capture_moves();
-    for (const auto& move : captures) {
+    MoveList captures = board.get_capture_moves();
+    MoveOrdering::MVV_LVA(board, captures);
+    // MoveOrdering::PV_P(board, pv, moves);
+
+    for (auto& move : captures) {
         BoardState savedState(board);
         board.make_move(move);
         int score = -quiescence_search(bestMove, initial_depth, depth, -beta, -alpha, end);
@@ -294,12 +295,12 @@ int Game::evaluate() {
     // if black checks white
     if (board.is_attacked(board.find_king(W), B)) {
         evaluation -= 50;
-        BitMoveVec moves = board.get_all_legal_moves();
+        MoveList moves = board.get_all_legal_moves();
         if (moves.size() == 0) return -INFTY;
 
     } else if (board.is_attacked(board.find_king(B), W)) {  // if white checks black
         evaluation += 50;
-        BitMoveVec moves = board.get_all_legal_moves();
+        MoveList moves = board.get_all_legal_moves();
         if (moves.size() == 0) return INFTY;
     }
     return evaluation;
