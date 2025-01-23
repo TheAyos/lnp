@@ -22,7 +22,7 @@ namespace King {
         return attacks;
     };
 
-    void add_legal_moves(Board &board, BitMoveVec &moves, bool onlyCaptures) {
+    void add_legal_moves(Board &board, MoveList &moves, bool onlyCaptures) {
         int turn = board.turn;
         U64 bb, attacks;
 
@@ -44,8 +44,13 @@ namespace King {
                 // add only if not attacked by enemy
                 // moves.add_move_if_legal(
                 //     BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false), board);
+		// MoveList::Type T = isCapture ? MoveList::Quiet : MoveList::Attack;	
                 if (!onlyCaptures || isCapture) {
-                    board.add_move_if_legal(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+		    if (isCapture)
+                    	board.add_move_if_legal<MoveList::Attack>(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+		    else
+			board.add_move_if_legal<MoveList::Quiet>(moves, BitMove(from, to, piece, NO_PROMOTION, isCapture, false, false, false));
+	
                 }
 
                 clear_bit(attacks, to);
@@ -96,7 +101,7 @@ namespace King {
                 // check (3) and (4)
                 //FIXME: add check is attacked on other kingsideemptysquare ?
                 if (!board.is_attacked(kingInitialSquare, 1 - turn) && !board.is_attacked(kingSideEmptySquares[0], 1 - turn))
-                board.add_move_if_legal(moves, BitMove(kingInitialSquare, kingSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+                board.add_move_if_legal<MoveList::Quiet>(moves, BitMove(kingInitialSquare, kingSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
                 // moves.push_back();
             }
         }
@@ -111,7 +116,7 @@ namespace King {
             if (empty) {
                 //FIXME: add check is attacked on other queensideemptysquare ?
                 if (!board.is_attacked(kingInitialSquare, 1 - turn) && !board.is_attacked(queenSideEmptySquares[1], 1 - turn))
-                    board.add_move_if_legal(moves, BitMove(kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
+                    board.add_move_if_legal<MoveList::Quiet>(moves, BitMove(kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
                     // moves.push_back(BitMove(kingInitialSquare, queenSideRookSquare, piece, NO_PROMOTION, false, false, false, true));
             }
         }

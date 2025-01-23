@@ -3,6 +3,7 @@
 #include "Board.h"
 #include "Openings.h"
 #include "Parser.h"
+
 #include <chrono>
 
 #define MAX_ALPHA_BETA_DEPTH 5 // legacy

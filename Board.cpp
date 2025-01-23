@@ -357,15 +357,18 @@ bool Board::is_attacked(int sq, int by_color) {
     return false;
 }
 
-void Board::add_move_if_legal(BitMoveVec &moveVec, const BitMove &m) {
+/*
+template <MoveList::Type T>
+void Board::add_move_if_legal(MoveList &moves, const BitMove &m) {
     int moveLeadsToCheck = make_move(m, true);
-    if (!moveLeadsToCheck) moveVec.emplace_back(m); // optimization
-};
+    if (!moveLeadsToCheck) moves.push<T>(m);
+    // moveVec.emplace_back(m); // optimization
+}*/
 
-BitMoveVec Board::get_all_legal_moves() {
-    BitMoveVec moves;
+MoveList Board::get_all_legal_moves() {
+    MoveList moves;
     // OPTI: even more, can use a preallocated array
-    moves.reserve(256);
+    // moves.reserve(256);
 
     Pawn::add_legal_moves(*this, moves);
     Knight::add_legal_moves(*this, moves);
@@ -374,14 +377,16 @@ BitMoveVec Board::get_all_legal_moves() {
     Queen::add_legal_moves(*this, moves);
     King::add_legal_moves(*this, moves);
 
+    moves.finish();
+
     // Util::printDebug("[Board::FFSIZE]" + std::to_string(moves.size()));
     // Util::printDebug("[Board::get_all_legal_moves] generated " + std::to_string(moves.size()) + " moves");
     return moves;
 }
 
-BitMoveVec Board::get_capture_moves() {
-    BitMoveVec captureMoves;
-    captureMoves.reserve(256);
+MoveList Board::get_capture_moves() {
+    MoveList captureMoves;
+    // captureMoves.reserve(256);
 
     Pawn::add_legal_moves(*this, captureMoves, true);
     Knight::add_legal_moves(*this, captureMoves, true);
@@ -390,11 +395,13 @@ BitMoveVec Board::get_capture_moves() {
     Queen::add_legal_moves(*this, captureMoves, true);
     King::add_legal_moves(*this, captureMoves, true);
 
+    captureMoves.finish();
+
     return captureMoves;
 }
 
 void Board::perftree(int depth) {
-    BitMoveVec moves = get_all_legal_moves();
+    MoveList moves = get_all_legal_moves();
     long long totalNodes = 0;
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -431,7 +438,7 @@ long Board::perft_search(int depth) {
 
     long res = 0;
     if (depth == 0) return 1;
-    BitMoveVec moves = get_all_legal_moves();
+    MoveList moves = get_all_legal_moves();
 
     for (const BitMove &mv : moves) {
 

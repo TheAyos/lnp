@@ -32,10 +32,28 @@ int main(int argc, char **argv) {
 
     // DEBUGGING: to debug move generation in details at higher depths
     // inspired by https://github.com/agausmann/perftree to find bugs in movegen, comparing with stockfish
-    Board perftree_board = Board("5B2/6P1/1p6/8/1N6/kP6/2K5/8 w - - ");
-    std::cout << perftree_board;
-    perftree_board.perftree(6);
+    Board board = Board("5B2/6P1/1p6/8/1N6/kP6/2K5/8 w - - ");
+    MoveList moves = board.get_all_legal_moves();
+    moves.finish();
+    
+    std::cout << "yep" << std::endl; 
+    for (auto& move: moves) {
+	move.print();
+    	// move.print();
+    }
+    std::cout << "done" << std::endl;
 
+    MoveOrdering::MVV_LVA(board, moves);
+
+    for (auto& move: moves) {
+	move.print();
+    	// move.print();
+    }
+
+    // std::cout << perftree_board;
+    // perftree_board.perftree(6);
+    
+    std::cout << "Hello" << std::endl;
     // TESTING: visualize moves one by one
     // BoardState state (board);
     // for (auto &move : moves) {
