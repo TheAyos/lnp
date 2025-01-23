@@ -28,9 +28,7 @@ class Game {
 
     long nSearchedNodes;
 
-    /* -------------------------- search and evaluation ------------------------- */
-    int evaluate();
-    int evaluate_piece(int piece, int rank, int file);
+    /* -------------------------- search ------------------------- */
     void search_random(U64& bestMove);
     // int search_best_minimax(U64& bestMove, int depth);
 

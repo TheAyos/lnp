@@ -55,7 +55,15 @@ int eval(Board &board) {
     valuation += game_phase.second * piece_sq.second;
     valuation /= 24;
 
-    return valuation;
+    return (board.turn == W) ? valuation : -valuation;
+}
+
+int evalnomove(Board &board) {
+    bool inCheck = board.playerInCheck(board.turn);
+    if (inCheck)
+	return -99999;
+    else
+	return 0;
 }
 
 } // namespace

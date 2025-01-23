@@ -20,6 +20,8 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,stack-size=10000000
 include_directories(.)
 
 add_library(headers
+	    TT.h
+	    Zobrist.h
 	    Evaluator.h
 	    Evaluation.h
 	    MoveOrdering.h
@@ -32,8 +34,8 @@ add_library(headers
             bitpieces/Queen.h bitpieces/Queen.cpp bitpieces/King.h bitpieces/King.cpp
             bitpieces/Bishop.h bitpieces/Bishop.cpp bitpieces/Rook.h bitpieces/Rook.cpp
             Openings.h Openings.cpp
-            Evaluator.h
-            Evaluation.h)
+            Search.h Search.cpp
+            )
 
 add_executable(logic-and-proofs main.cpp)
 target_link_libraries(logic-and-proofs PRIVATE headers)

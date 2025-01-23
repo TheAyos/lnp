@@ -71,6 +71,9 @@ void Parser::parseHistory() {
 
         BitMove line_move = parse_algebraic_move(from_square, to_square, promotion_piece);
         board.make_move(line_move);
+	/* std::cout << board << std::endl;
+	std::cout << "Current hash: " << board.get_hash() << std::endl;
+	std::cout << "Current ply: " << board.ply << std::endl;*/
 
         if (DEBUG) std::cout << "ep::" << board.enpassantSquare << ", prom_piece:" << promotion_piece << std::endl;
         // if (DEBUG) std::cout << board;
@@ -92,7 +95,8 @@ BitMove Parser::parse_algebraic_move(int from, int to, char promotion_code) {
     bool enpassant = false;
     bool castling = false;
     int prom = NO_PROMOTION;
-
+    
+    // std::cout << board << std::endl;
     if (piece == -1)
         Util::exitError("[parse_algebraic_move] ERROR, HISTORY INVALID, NOT HANDLED, SHOULD NEVER HAPPEN...PANIC!!");
 

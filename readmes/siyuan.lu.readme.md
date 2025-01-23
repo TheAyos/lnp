@@ -11,3 +11,22 @@
 - Finished implementing en passant, castling, and promotion
 - Check the correctness of the legal moves checkers using perft and search function
 - Begin a first implementation of a minimax algorithm
+
+## Week 4:
+- Studied the bitboard
+- Bug checks
+
+## Week 5:
+- Piece tracking with array
+- Bitboard move list optimizations
+
+## Week 6:
+- Implemented improved Evaluation with the following:
+ * game phase determination
+ * improved piece square tables
+ * tapered evaluation
+
+## Week 7:
+- Implemented zobrist hashing with transposition tables
+- Improve and implement better move ordering, including killer moves
+- Redesigned search functions

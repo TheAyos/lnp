@@ -7,6 +7,16 @@
 #include "PV.h"
 
 namespace MoveOrdering {
+void Killer(MoveList &moves, BitMove killer_move) {
+    for (size_t i = moves.attacks()+1; i < moves.size(); i++) {
+	if (moves[i] == killer_move) {
+	    std::memmove(&moves[moves.attacks()+1], &moves[moves.attacks()], (i-moves.attacks())*sizeof(BitMove));
+	    moves[moves.attacks()] = killer_move;
+	    break;
+	}
+    }
+}
+
 void MVV_LVA(Board &board, MoveList &moves) {
     std::sort(moves.begin(), &moves[moves.attacks()], [&board](BitMove left, BitMove right) {
 	int left_capture = board.get_piece_on_square(left.get_to());
@@ -30,5 +40,21 @@ void PV_P(Board &board, PV &pv, MoveList &moves) {
 	    break;
 	}
     }
+}
+
+void TTPriority(BitMove move, MoveList &moves) {
+    for (size_t i = 1; i < moves.size(); i++) {
+	if (moves[i] == move) {
+	    std::memmove(&moves[1], &moves[0], i*sizeof(BitMove));
+	    moves[0] = move;
+	    break;
+	}
+    }	
+}
+
+void All(Board &board, BitMove ttmove, PV &pv, MoveList &moves) {
+    MVV_LVA(board, moves);
+    TTPriority(ttmove, moves);
+    PV_P(board, pv, moves);
 }
 } // namespace MoveOrdering
