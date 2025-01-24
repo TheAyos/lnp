@@ -19,5 +19,11 @@
 - implementation of a python program to translate it into the way I wanted
 
 ## WEEK 6 :
-- tried many programs to make a good database
+- tried many programs to make a good database (program in testing/openings_files folder)
 - changes in functions to make openings functionable
+
+## WEEK 7 : 
+- analyzed games to report errors
+
+## WEEK 8 : 
+- implementation MVV_LVA to sort moves correctly
