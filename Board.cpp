@@ -260,7 +260,7 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     int to = move.get_to();
 
     // int captured = to;
-    int captured_piece = pieceOnSquare[to]%6;
+    int captured_piece = pieceOnSquare[to];
     // std::cout << pieceOnSquare[from] << std::endl;
     pieceOnSquare[to] = pieceOnSquare[from];
     pieceOnSquare[from] = 12;
@@ -281,9 +281,9 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     if (move.get_capture()) {
         if (DEBUG) std::cout << "!!!capturing piece: " << letter_pieces[get_piece_on_square(to)] << std::endl;
         // if (DEBUG) std::cout << "-*---*-BEFORE CAPTURE HANDLING-*---*-" << *this << std::endl;
-        clear_bit(bitboards[get_piece_on_square(to)], to);
+        clear_bit(bitboards[captured_piece], to);
         // if (DEBUG) std::cout << "-*---*-AFTER CAPTURE HANDLING-*---*-" << *this << std::endl;
-	Zobrist::flip_sq(this->history[ply].hash, to, captured_piece, turn);
+	Zobrist::flip_sq(this->history[ply].hash, to, captured_piece%6, turn);
     }
 
     /* ------------------------------- move piece ------------------------------- */
