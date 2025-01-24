@@ -19,11 +19,11 @@ void Killer(MoveList &moves, BitMove killer_move) {
 
 void MVV_LVA(Board &board, MoveList &moves) {
     std::sort(moves.begin(), &moves[moves.attacks()], [&board](BitMove left, BitMove right) {
-	int left_capture = board.get_piece_on_square(left.get_to());
-	int right_capture = board.get_piece_on_square(right.get_to());
+	int left_capture = board.pieceOnSquare[left.get_to()];
+	int right_capture = board.pieceOnSquare[right.get_to()];
 	if (left_capture > right_capture) return true;
-	int left_piece = board.get_piece_on_square(left.get_from());
-	int right_piece = board.get_piece_on_square(right.get_from());
+	int left_piece = board.pieceOnSquare[left.get_from()];
+	int right_piece = board.pieceOnSquare[right.get_from()];
 	if (left_capture == right_capture && left_piece < right_piece) return true;
 	return false;
     });

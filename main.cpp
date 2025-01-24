@@ -88,7 +88,9 @@ int main(int argc, char **argv) {
     Parser parser{board, argc, argv};
     parser.parseArgs();
     parser.parseHistory();
-  
+    
+    std::cout << "how i see the board before writing next move: " << board;
+
     /* 
     // TODO: integrate this to the rest of the search logic
     if (board.ply <= 20) {
@@ -101,14 +103,12 @@ int main(int argc, char **argv) {
     } */
 
     std::cout << "starting search..." << std::endl;
-    // U64 bestMove = game.search(start);
     BitMove bestMove = Search::BestMoveTime(board, 9500);
-
+    // U64 bestMove = game.search(start); 
     // std::cout << "current hash" << board.get_hash() << std::endl; 
     // std::cout << board << std::endl;
 
     // if (!bestMove) Util::exitError("no move found here in main !!");
-    std::cout << "how i see the board before writing next move: " << board;
     // parser.writeNextMove(BitMove(bestMove).get_algebraic_notation());
     parser.writeNextMove(bestMove.get_algebraic_notation());
 

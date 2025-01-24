@@ -89,7 +89,7 @@ void Parser::parseHistory() {
 
 // FIXME: BUG: fix this parsing !
 BitMove Parser::parse_algebraic_move(int from, int to, char promotion_code) {
-    int piece = board.get_piece_on_square(from);
+    int piece = board.pieceOnSquare[from];
     bool capture = false;
     bool doublepush = false;
     bool enpassant = false;
@@ -100,7 +100,7 @@ BitMove Parser::parse_algebraic_move(int from, int to, char promotion_code) {
     if (piece == -1)
         Util::exitError("[parse_algebraic_move] ERROR, HISTORY INVALID, NOT HANDLED, SHOULD NEVER HAPPEN...PANIC!!");
 
-    if (board.get_piece_on_square(to) != -1) capture = true;
+    if (board.pieceOnSquare[to] != 12) capture = true;
 
     if (promotion_code != ' ') {
         prom = char_to_pieces(promotion_code);
@@ -112,7 +112,7 @@ BitMove Parser::parse_algebraic_move(int from, int to, char promotion_code) {
         // detect pawn doublepush
         if (deltaSquareAbs == 16) doublepush = true;
         // detect pawn enpassant opportunity
-        if (to % 8 != from % 8 && board.get_piece_on_square(to) == -1) enpassant = true;
+        if (to % 8 != from % 8 && board.pieceOnSquare[to] == 12) enpassant = true;
     }
 
     if (piece == KING || piece == king)

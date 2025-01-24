@@ -131,7 +131,8 @@ BitMove IterativeDeepening(Board &board, int timeLimit) {
     PV pv = PV();
     int alpha = -99999;
     int beta = 99999;
-    
+    size_t prior = board.move_count;
+
     for (size_t depth = 1; depth < 512 && !setjmp(exitBuffer); depth++) {
 	auto t0 = std::chrono::steady_clock::now();
 	// std::cout << "test" << std::endl;
@@ -150,18 +151,21 @@ BitMove IterativeDeepening(Board &board, int timeLimit) {
 	auto t1 = std::chrono::steady_clock::now();
 	size_t t = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
 	timeLimit -= t;
+	
+	// std::cout << board << std::endl;
 
 	pv = ExtractPV(board);
-	
-	std::cout << "depth: " << depth << " score: " << score << " time: " << t << std::endl;
+	size_t nodes = board.move_count - prior;
+		
+	std::cout << "depth: " << depth << " score: " << score << " time: " << t
+	<< " nodes: " << nodes << " hashfull: " << TT::HashFull() << std::endl;
 	
 	/* for (size_t i = 0; i < pv.size(); i++)
 	    std::cout << pv[i].Export() << " "; */
-	std::cout << std::endl;
+
 	std::flush(std::cout);
 	if (std::abs(score) == 99999) break;
     }
-
     return pv[0];
 }
 } // namespace

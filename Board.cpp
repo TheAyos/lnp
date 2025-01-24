@@ -374,6 +374,7 @@ int Board::make_move(const BitMove &move, bool justCheckCheck, bool onlyCapture)
     }
     
     Zobrist::flip_color(this->history[ply].hash);
+    move_count++;
 
 
     if (DEBUG) std::cout << *this;

@@ -31,6 +31,9 @@ class Board {
     // number of moves made since the beginning of the game (ply)
     int ply;
 
+    // number of moves made in search
+    int move_count = 0;
+
     // to speed up piece lookup
     int pieceOnSquare[64];
 
