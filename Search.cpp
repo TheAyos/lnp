@@ -2,6 +2,7 @@
 #include "Evaluation.h"
 #include "TT.h"
 #include "MoveOrdering.h"
+#include <optional>
 
 namespace Search {
 
@@ -166,10 +167,32 @@ BitMove IterativeDeepening(Board &board, int timeLimit) {
 	std::flush(std::cout);
 	if (std::abs(score) == 99999) break;
     }
-    return pv[0];
+    
+    if (pv.empty()) {
+	std::cout << "somehow, pv is empty" << std::endl;
+	TT::Clear();
+	return BestMoveDepth(board, 3);
+    }
+    else {
+    	return pv[0];
+    }
 }
 } // namespace
 
+
+BitMove BestMoveDepth(Board &board, int depth) {
+    std::optional<std::pair<BitMove, int>> bestMove;
+    for (auto move: board.get_all_legal_moves()) {
+	BoardState savedState(board);
+        board.make_move(move);
+	PV pv = PV();
+	int value = -Functions::Negamax(board, -99999, 99999, depth-1, 0, pv);
+	savedState.reapply(board);
+	if (!bestMove.has_value() || value > bestMove.value().second) bestMove = {move, value};	
+    }
+
+    return bestMove.value().first;
+}
 
 BitMove BestMoveTime(Board &board, int timeLimit) {
     return IterativeDeepening(board, timeLimit);

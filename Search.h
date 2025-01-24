@@ -36,7 +36,6 @@ int Quiesce(Board &board, int alpha, int beta, PV &pv);
 int Negamax(Board &board, int alpha, int beta, int depth, int searchDepth, PV &pv, SearchLimit *limit = nullptr);
 }; // namespace Functions
 
-/*
-BitMove BestMoveDepth(Board &board, int depth); */
+BitMove BestMoveDepth(Board &board, int depth);
 BitMove BestMoveTime(Board &board, int time_limit);
 }; // namespace Search
